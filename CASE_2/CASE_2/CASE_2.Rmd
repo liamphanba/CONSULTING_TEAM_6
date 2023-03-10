@@ -1,0 +1,53 @@
+---
+title: "CASE 2 - Aanaesthetics"
+author: Liam Phan, Michael Bigler, Tania Loureiro, William Elkiess, Dakota Cuellar
+  and Ilyana El Mendili
+date: "2023-03-10"
+output: 
+  rmdformats::downcute:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALSE)
+rm(list = ls())
+
+```
+
+# Packages
+
+```{r Packages}
+
+library(ggplot2)
+
+
+```
+
+# Dataset
+
+```{r Dataset}
+
+```
+
+# Data Exploratory Analysis
+
+```{r Data Exploratory Analysis}
+
+```
+
+# Core Analysis
+
+```{r Core Analysis}
+
+```
+
+# Results
+
+```{r Resuts}
+
+
+
+```
+
+# References
