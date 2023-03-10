@@ -21,18 +21,29 @@ rm(list = ls())
 
 library(ggplot2)
 
-
 ```
 
 # Dataset
 
 ```{r Dataset}
 
+Aanaesthetics <- fread("Aanaesthetics.txt")
+str(Aanaesthetics)
+
 ```
 
 # Data Exploratory Analysis
 
 ```{r Data Exploratory Analysis}
+
+
+library(ggplot2)
+
+ggplot(Aanaesthetics) +
+ aes(x = "", y = A) +
+ geom_boxplot(fill = "#112446") +
+ theme_minimal()
+
 
 ```
 
