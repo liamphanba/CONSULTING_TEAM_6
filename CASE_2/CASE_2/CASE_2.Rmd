@@ -36,20 +36,16 @@ str(Aanaesthetics)
 
 ```{r Data Exploratory Analysis}
 
-
-library(ggplot2)
-
-ggplot(Aanaesthetics) +
- aes(x = "", y = A) +
- geom_boxplot(fill = "#112446") +
- theme_minimal()
-
+boxplot(Aanaesthetics, frame = FALSE, col = c("#FAF3DD", "#B8F2E6", "#FFA69E","#5E6472"))
 
 ```
 
 # Core Analysis
 
 ```{r Core Analysis}
+
+
+
 
 ```
 
