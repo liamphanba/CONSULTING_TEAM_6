@@ -36,7 +36,7 @@ str(Aanaesthetics)
 
 ```{r Data Exploratory Analysis}
 
-boxplot(Aanaesthetics, frame = FALSE, col = c("#FAF3DD", "#B8F2E6", "#FFA69E","#5E6472"),xlab = "X label", ylab = "Y label", main = "Title")
+boxplot(Aanaesthetics, frame = FALSE, col = c("#FAF3DD", "#B8F2E6", "#FFA69E","#5E6472"),xlab = "Anaesthetics", ylab = "Minutes", main = "Reversal of Anaesthetic")
 
 ```
 
