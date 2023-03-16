@@ -128,9 +128,19 @@ ANOVA_Summary
 
 ```{r Anova Checks}
 
+# Plot ANOVA Residuals
 par(mfrow=c(2,2))
 plot(ANOVA)
 par(mfrow=c(1,1))
+
+# Extract the residuals
+ANOVA_Residuals <- residuals(object = ANOVA )
+
+# Run Shapiro-Wilk test
+shapiro.test(x = ANOVA_Residuals )
+
+# Kruskal-Wallis rank sum test, which can be used when ANNOVA assumptions are not met
+kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 ```
 
