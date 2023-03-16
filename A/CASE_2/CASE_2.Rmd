@@ -15,40 +15,93 @@ rm(list = ls())
 
 ```
 
+# Client Case
+
+> A study was carried out at a hospital to compare the effects of four different types of anaesthetic as used in major operations.
+>
+> 80 patients undergoing a variety of operations were randomly assigned to one of the four anaesthetics and a variety of observations were taken on each patient both before and after the operation.
+>
+> 1.  The client is interested on just one of the measurements made, namely the time, in minutes, from the reversal of the anaesthetic until the patient opened the eyes.
+> 2.  The client would like to know if there is any evidence of differences between the effects of the four anaesthetics?
+
 # Packages
 
 ```{r Packages}
 
 library(ggplot2)
 library(data.table)
+library(tidyverse)
+library(reshape)
+library(DT)
 
 ```
 
 # Dataset
 
+
 ```{r Dataset}
 
 Aanaesthetics <- fread("Aanaesthetics.txt")
-str(Aanaesthetics)
+Aanaesthetics <- as_data_frame(Aanaesthetics)
+
+Aanaesthetics_Pivoted <- Aanaesthetics %>% 
+  pivot_longer(
+    cols = c("A","B","C","D"), 
+    names_to = "Anaesthetic", 
+    values_to = "Time")
+
+datatable(Aanaesthetics)
+datatable(Aanaesthetics_Pivoted)
+                              
+```
+
+
+# 1. Data Exploratory Analysis
+
+```{r Boxplots}
+
+Boxplot <- ggplot(Aanaesthetics_Pivoted) +
+ aes(x = Anaesthetic, y = Time, fill=Anaesthetic) +
+ geom_boxplot() + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights") +  theme_minimal() + theme(plot.title = element_text(face = "bold"))
+
+
+Boxplot
 
 ```
 
-# Data Exploratory Analysis
+```{r Histograms}
 
-```{r Data Exploratory Analysis}
+Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights")
 
-boxplot(Aanaesthetics, frame = FALSE, col = c("#FAF3DD", "#B8F2E6", "#FFA69E","#5E6472"),xlab = "Anaesthetics", ylab = "Minutes", main = "Reversal of Anaesthetic")
+Histograms
+
+```
+
+# 2. Core Analysis
+
+## Anova Test
+
+```{r Anova Test}
+
+one.way <- aov(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
+
+summary(one.way)
 
 ```
 
-# Core Analysis
+## Check Assumptions
 
-```{r Core Analysis}
+### Homoskedasticity
 
+```{r Homoskedasticity}
 
-
+par(mfrow=c(2,2))
+plot(one.way)
+par(mfrow=c(1,1))
 
 ```
+
+
 
 # Results
 
