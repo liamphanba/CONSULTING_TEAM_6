@@ -10,7 +10,7 @@ output:
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALSE,options(scipen=999))
 rm(list = ls())
 
 ```
@@ -145,7 +145,6 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 ```
 
 
-
 # Results
 
 ```{r Resuts}
@@ -156,3 +155,7 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 ```
 
 # References
+
+[One-Way ANOVA Test in R](http://www.sthda.com/english/wiki/one-way-anova-test-in-r)
+
+
