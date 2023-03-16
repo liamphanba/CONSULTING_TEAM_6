@@ -33,9 +33,7 @@ library(data.table)
 library(tidyverse)
 library(reshape)
 library(DT)
-library(gtsummary)
-library(psych)
-
+library(car)
 
 ```
 
@@ -51,8 +49,6 @@ Aanaesthetics_Pivoted <- Aanaesthetics %>%
     cols = c("A","B","C","D"), 
     names_to = "Anaesthetic", 
     values_to = "Time")
-
-length(Aanaesthetics_Pivoted$Anaesthetic)
 
 Aanaesthetics_Pivoted$Patient <- seq(1,length(Aanaesthetics_Pivoted$Anaesthetic))
 
@@ -79,7 +75,7 @@ Weird_Patient
 
 ```
 
-> Weird Patient having 0 Minute
+> Weird Patient having 0 minute recorded in the process... Need to talk about Data Collecting Phase !
 
 
 ```{r Boxplots}
@@ -91,6 +87,7 @@ Boxplot <- ggplot(Aanaesthetics_Pivoted) +
 Boxplot
 
 ```
+
 
 ```{r Histograms}
 
@@ -113,6 +110,8 @@ ANOVA_Summary
 
 ```
 
+> P-Value Over 5% and 10%, We cannot reject Null Hypothessis, then they are all the same ! 
+
 ## Check Assumptions
 
 > 1.  Homoskedasticity
@@ -121,7 +120,6 @@ ANOVA_Summary
 > <!-- -->
 > ```
 > 2.  Normality
-
 
 
 ### Anova Checks
@@ -136,6 +134,9 @@ par(mfrow=c(1,1))
 # Extract the residuals
 ANOVA_Residuals <- residuals(object = ANOVA )
 
+# Levene's Test
+leveneTest(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
+
 # Run Shapiro-Wilk test
 shapiro.test(x = ANOVA_Residuals )
 
@@ -143,6 +144,10 @@ shapiro.test(x = ANOVA_Residuals )
 kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 ```
+
+> Some Outliers can deviate the result in Anova, Normality not very good, but Shapiro-Wilk Normality Test say it's normal, in case we don't believe this, we can use Kruskal-Wallis chi-squared and see p-value over 10% so same conclusions than ANOVA. 
+
+> From the output above we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the different treatment groups.
 
 
 # Results
