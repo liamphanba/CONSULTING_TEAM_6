@@ -33,6 +33,9 @@ library(data.table)
 library(tidyverse)
 library(reshape)
 library(DT)
+library(gtsummary)
+library(psych)
+
 
 ```
 
@@ -56,10 +59,14 @@ datatable(Aanaesthetics_Pivoted)
 
 # 1. Data Exploratory Analysis
 
+```{r Summary Statistics}
+
+describeBy(Aanaesthetics_Pivoted,group=Aanaesthetics_Pivoted$Anaesthetic, fast = TRUE)
+
+```
 
 
-
-```{r Boxplots, fig.height=3}
+```{r Boxplots}
 
 Boxplot <- ggplot(Aanaesthetics_Pivoted) +
  aes(x = Anaesthetic, y = Time, fill=Anaesthetic) +
@@ -69,10 +76,9 @@ Boxplot
 
 ```
 
-```{r Histograms, fig.height=3}
+```{r Histograms}
 
 Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + theme(legend.position = "none") + theme(axis.title = element_text(size =12)) + theme(strip.text.x = element_text(size = 12,face = "bold"))         
-
 Histograms
 
 ```
