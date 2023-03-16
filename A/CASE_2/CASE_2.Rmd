@@ -38,7 +38,6 @@ library(DT)
 
 # Dataset
 
-
 ```{r Dataset}
 
 Aanaesthetics <- fread("Aanaesthetics.txt")
@@ -55,23 +54,24 @@ datatable(Aanaesthetics_Pivoted)
                               
 ```
 
-
 # 1. Data Exploratory Analysis
 
-```{r Boxplots}
+
+
+
+```{r Boxplots, fig.height=3}
 
 Boxplot <- ggplot(Aanaesthetics_Pivoted) +
  aes(x = Anaesthetic, y = Time, fill=Anaesthetic) +
- geom_boxplot() + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights") +  theme_minimal() + theme(plot.title = element_text(face = "bold"))
-
+ geom_boxplot() + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=15,face = "bold")) + theme(axis.title = element_text(size =12))  
 
 Boxplot
 
 ```
 
-```{r Histograms}
+```{r Histograms, fig.height=3}
 
-Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights")
+Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + theme(legend.position = "none") + theme(axis.title = element_text(size =12)) + theme(strip.text.x = element_text(size = 12,face = "bold"))         
 
 Histograms
 
@@ -91,9 +91,18 @@ summary(one.way)
 
 ## Check Assumptions
 
-### Homoskedasticity
+> 1.  Homoskedasticity
+>
+> ```{=html}
+> <!-- -->
+> ```
+> 2.  Normality
 
-```{r Homoskedasticity}
+
+
+### Anova Checks
+
+```{r Anova Checks}
 
 par(mfrow=c(2,2))
 plot(one.way)
