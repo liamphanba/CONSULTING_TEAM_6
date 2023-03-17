@@ -16,7 +16,6 @@ rm(list = ls())
 ```
 
 
-
 <center>
 ![](Alpine.png)
 </center>
@@ -91,34 +90,49 @@ datatable(Aanaesthetics_Pivoted)
 
 ```
 
+## Outliers
+
 ```{r Outliers}
 
 Weird_Patient <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Time == 0,]
 
-Weird_Patient
+datatable(Weird_Patient, caption = "Weird Patients")
+
+Outliers <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Patient %in% c(41,30,31),]
+
+datatable(Outliers, caption = "Outliers")
 
 ```
 
 > Weird Patient having 0 minute recorded in the process... Need to talk about Data Collecting Phase !
 
+## Boxplots
+
 ```{r Boxplots}
 
 Boxplot <- ggplot(Aanaesthetics_Pivoted) +
  aes(x = Anaesthetic, y = Time, fill=Anaesthetic) +
- geom_boxplot() + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=15,face = "bold")) + theme(axis.title = element_text(size =12))  
+ geom_boxplot() + scale_fill_manual(values=c("#2B3433", "#2F4F4E", "#0D8387", "#CBE4DE")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=15,face = "bold")) + theme(axis.title = element_text(size =12))  
 
 Boxplot
 
 ```
 
+
+## Histograms
+
 ```{r Histograms}
 
-Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + theme(legend.position = "none") + theme(axis.title = element_text(size =12)) + theme(strip.text.x = element_text(size = 12,face = "bold"))         
+Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#2B3433", "#2F4F4E", "#0D8387", "#CBE4DE")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + theme(legend.position = "none") + theme(axis.title = element_text(size =12)) + theme(strip.text.x = element_text(size = 12,face = "bold"))         
 Histograms
 
 ```
 
+
+
+
 ## 2. Core Analysis
+
 
 ### Anova Test
 
