@@ -6,8 +6,6 @@ date: "2023-03-10"
 output: 
   rmdformats::downcute:
     code_folding: hide
-
-
 ---
 
 ```{r setup, include=FALSE}
@@ -25,6 +23,21 @@ rm(list = ls())
 >
 > 1.  The client is interested on just one of the measurements made, namely the time, in minutes, from the reversal of the anaesthetic until the patient opened the eyes.
 > 2.  The client would like to know if there is any evidence of differences between the effects of the four anaesthetics?
+
+# Definitions
+
+> **Anaesthesia means "loss of sensation". Medicines that cause anaesthesia are called anaesthetics.**
+>
+> Anaesthetics are used during tests and surgical operations to numb sensation in certain areas of the body or induce sleep.
+>
+> This prevents pain and discomfort, and enables a wide range of medical procedures to be carried out.
+>
+> Local anaesthetics and general anaesthetics are 2 commonly used types of anaesthetics:
+>
+> -   [local anaesthesia](https://www.nhs.uk/conditions/local-anaesthesia/) is where a small area of the body is numbed and you remain fully conscious -- often used during minor procedures
+>
+> -   [general anaesthesia](https://www.nhs.uk/conditions/general-anaesthesia/) is where you're totally unconscious and unaware of the procedure -- often used for more serious operations
+
 
 # Packages
 
@@ -62,7 +75,10 @@ datatable(Aanaesthetics_Pivoted)
                               
 ```
 
-# 1. Data Exploratory Analysis
+
+# Analysis
+
+## 1. Data Exploratory Analysis
 
 ```{r Summary Statistics}
 
@@ -79,7 +95,6 @@ Weird_Patient
 
 > Weird Patient having 0 minute recorded in the process... Need to talk about Data Collecting Phase !
 
-
 ```{r Boxplots}
 
 Boxplot <- ggplot(Aanaesthetics_Pivoted) +
@@ -90,7 +105,6 @@ Boxplot
 
 ```
 
-
 ```{r Histograms}
 
 Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#294C60", "#648767", "#7776BC","#967D69")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + theme(legend.position = "none") + theme(axis.title = element_text(size =12)) + theme(strip.text.x = element_text(size = 12,face = "bold"))         
@@ -98,9 +112,9 @@ Histograms
 
 ```
 
-# 2. Core Analysis
+## 2. Core Analysis
 
-## Anova Test
+### Anova Test
 
 ```{r Anova Test}
 
@@ -112,19 +126,17 @@ ANOVA_Summary
 
 ```
 
-> P-Value Over 5% and 10%, We cannot reject Null Hypothessis, then they are all the same ! 
+> P-Value Over 5% and 10%, We cannot reject Null Hypothessis, then they are all the same !
 
-## Check Assumptions
+### Check Assumptions
 
 > 1.  Homoskedasticity
 >
-> ```{=html}
 > <!-- -->
-> ```
+>
 > 2.  Normality
 
-
-### Anova Checks
+#### Anova Checks
 
 ```{r Anova Checks}
 
@@ -147,10 +159,9 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 ```
 
-> Some Outliers can deviate the result in Anova, Normality not very good, but Shapiro-Wilk Normality Test say it's normal, in case we don't believe this, we can use Kruskal-Wallis chi-squared and see p-value over 10% so same conclusions than ANOVA. 
+> Some Outliers can deviate the result in Anova, Normality not very good, but Shapiro-Wilk Normality Test say it's normal, in case we don't believe this, we can use Kruskal-Wallis chi-squared and see p-value over 10% so same conclusions than ANOVA.
 
 > From the output above we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the different treatment groups.
-
 
 # Results
 
@@ -164,5 +175,3 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 # References
 
 [One-Way ANOVA Test in R](http://www.sthda.com/english/wiki/one-way-anova-test-in-r)
-
-
