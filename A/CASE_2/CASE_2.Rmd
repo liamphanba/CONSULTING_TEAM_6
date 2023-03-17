@@ -38,7 +38,6 @@ rm(list = ls())
 >
 > -   [general anaesthesia](https://www.nhs.uk/conditions/general-anaesthesia/) is where you're totally unconscious and unaware of the procedure -- often used for more serious operations
 
-
 # Packages
 
 ```{r Packages, include=FALSE}
@@ -74,7 +73,6 @@ datatable(Aanaesthetics)
 datatable(Aanaesthetics_Pivoted)
                               
 ```
-
 
 # Analysis
 
@@ -170,8 +168,17 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 
 
+
 ```
 
-# References
+```{r}
+library(fitdistrplus)
+descdist(Aanaesthetics$A, discrete = FALSE)
+normal_dist <- fitdist(Aanaesthetics$A, "beta")
+plot(normal_dist)
+
+```
+
+References
 
 [One-Way ANOVA Test in R](http://www.sthda.com/english/wiki/one-way-anova-test-in-r)
