@@ -15,6 +15,12 @@ rm(list = ls())
 
 ```
 
+
+
+<center>
+![](Alpine.png)
+</center>
+
 # Client Case
 
 > A study was carried out at a hospital to compare the effects of four different types of anaesthetic as used in major operations.
