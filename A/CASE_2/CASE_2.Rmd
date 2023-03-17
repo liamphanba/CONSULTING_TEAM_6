@@ -112,7 +112,7 @@ datatable(Outliers, caption = "Outliers")
 
 Boxplot <- ggplot(Aanaesthetics_Pivoted) +
  aes(x = Anaesthetic, y = Time, fill=Anaesthetic) +
- geom_boxplot() + scale_fill_manual(values=c("#2B3433", "#2F4F4E", "#0D8387", "#CBE4DE")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=15,face = "bold")) + theme(axis.title = element_text(size =12))  
+ geom_boxplot() + scale_fill_manual(values=c("#435250", "#2F4F4E", "#0D8387", "#CBE4DE")) + labs(title = "Boxplots", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=15,face = "bold")) + theme(axis.title = element_text(size =12))
 
 Boxplot
 
@@ -127,7 +127,6 @@ Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) +
 Histograms
 
 ```
-
 
 
 ## 2. Core Analysis
