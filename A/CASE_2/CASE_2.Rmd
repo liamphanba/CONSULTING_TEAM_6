@@ -28,7 +28,7 @@ rm(list = ls())
 
 # Packages
 
-```{r Packages}
+```{r Packages, include=FALSE}
 
 library(ggplot2)
 library(data.table)
