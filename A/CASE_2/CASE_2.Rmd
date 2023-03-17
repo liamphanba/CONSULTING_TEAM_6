@@ -94,13 +94,19 @@ datatable(Aanaesthetics_Pivoted)
 
 ```{r Outliers}
 
-Weird_Patient <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Time == 0,]
-
-datatable(Weird_Patient, caption = "Weird Patients")
-
 Outliers <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Patient %in% c(41,30,31),]
 
 datatable(Outliers, caption = "Outliers")
+
+```
+
+### Weird Patients
+
+```{r}
+
+Weird_Patient <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Time == 0,]
+
+datatable(Weird_Patient, caption = "Weird Patients")
 
 ```
 
