@@ -90,7 +90,7 @@ datatable(Aanaesthetics_Pivoted)
 
 ```
 
-## Outliers
+### Outliers
 
 ```{r Outliers}
 
@@ -106,7 +106,7 @@ datatable(Outliers, caption = "Outliers")
 
 > Weird Patient having 0 minute recorded in the process... Need to talk about Data Collecting Phase !
 
-## Boxplots
+### Boxplots
 
 ```{r Boxplots}
 
@@ -119,7 +119,7 @@ Boxplot
 ```
 
 
-## Histograms
+### Histograms
 
 ```{r Histograms}
 
@@ -127,7 +127,6 @@ Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) +
 Histograms
 
 ```
-
 
 
 
