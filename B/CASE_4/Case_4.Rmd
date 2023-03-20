@@ -19,7 +19,6 @@ rm(list = ls())
 
 ```{r packages}
 library(knitr) # html tables
-library(papeR) # summarize
 library(gtsummary)
 ```
 
@@ -41,15 +40,33 @@ kable(summary(teaching))
 ```
 
 ```{r}
-table2 <- 
-  tbl_summary(
-    trial2,
-    by = trt, # split table by group
-    missing = "no" # don't list missing data separately
-  ) %>%
-  add_n() %>% # add column with total number of non-missing observations
-  add_p() %>% # test for a difference between groups
-  modify_header(label = "**Variable**") %>% # update the column header
-  bold_labels() 
+teaching_strata <- tbl_strata(teaching, c('GROUP', 'SESSION'), )
 
+table1 <- tbl_summary(
+  teaching,
+  by = GROUP, # split table by group
+  missing = "no" # don't list missing data separately
+) |> 
+  add_n() |>  # add column with total number of non-missing observations
+  add_p() |>  # test for a difference between groups
+  modify_header(label = "**Variable**") |> # update the column header
+  bold_labels() 
+table1
+```
+
+```{r}
+tbl_strata <-
+  teaching |> 
+  tbl_strata(
+    strata = GROUP,
+    .tbl_fun =
+      ~ .x |>
+        tbl_summary(by = SESSION, missing = "no") |>
+      add_n() |>  # add column with total number of non-missing observations
+      add_p() |>  # test for a difference between groups
+      modify_header(label = "**Variable**") |> # update the column header
+      bold_labels() ,
+    .header = "**{strata}**, N = {n}"
+  )
+tbl_strata
 ```
