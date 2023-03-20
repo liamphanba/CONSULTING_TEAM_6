@@ -14,3 +14,42 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALS
 rm(list = ls())
 
 ```
+
+# Packages
+
+```{r packages}
+library(knitr) # html tables
+library(papeR) # summarize
+library(gtsummary)
+```
+
+# Data Loading
+
+```{r data loading}
+teaching <- readxl::read_excel('Bteaching.xls')
+teaching <- data.frame(teaching)
+teaching$GROUP <- factor(teaching$GROUP, level = c('C', 'E'), labels = c('Control', 'Experiment'))
+teaching$GENDER <- factor(teaching$GENDER, level = c('M', 'F'), labels =  c('Male', 'Female'))
+teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V')) # get understandable lables
+teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+```
+
+# Data exploratory
+
+```{r exploratory}
+kable(summary(teaching))
+```
+
+```{r}
+table2 <- 
+  tbl_summary(
+    trial2,
+    by = trt, # split table by group
+    missing = "no" # don't list missing data separately
+  ) %>%
+  add_n() %>% # add column with total number of non-missing observations
+  add_p() %>% # test for a difference between groups
+  modify_header(label = "**Variable**") %>% # update the column header
+  bold_labels() 
+
+```
