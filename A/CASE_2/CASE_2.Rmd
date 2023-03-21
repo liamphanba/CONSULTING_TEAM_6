@@ -15,10 +15,7 @@ rm(list = ls())
 
 ```
 
-
-<center>
-![](Alpine.png)
-</center>
+<center>![](Alpine.png)</center>
 
 # Client Case
 
@@ -53,6 +50,7 @@ library(tidyverse)
 library(reshape)
 library(DT)
 library(car)
+library(fitdistrplus)
 
 ```
 
@@ -122,7 +120,6 @@ Boxplot
 
 ```
 
-
 ### Histograms
 
 ```{r Histograms}
@@ -132,9 +129,7 @@ Histograms
 
 ```
 
-
 ## 2. Core Analysis
-
 
 ### Anova Test
 
@@ -148,7 +143,7 @@ ANOVA_Summary
 
 ```
 
-> P-Value Over 5% and 10%, We cannot reject Null Hypothessis, then they are all the same !
+> P-Value Over 5% and 10%, We cannot reject Null Hypothesis, then they are all the same
 
 ### Check Assumptions
 
@@ -176,14 +171,33 @@ leveneTest(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 # Run Shapiro-Wilk test
 shapiro.test(x = ANOVA_Residuals )
 
+```
+
+> Some Outliers can deviate the result in Anova, Normality not very good, but Shapiro-Wilk Normality Test say it's normal, in case we don't believe this, we can use Kruskal-Wallis chi-squared and see p-value over 10% so same conclusions than ANOVA.
+
+
+```{r Distribution}
+descdist(Aanaesthetics$A, discrete = FALSE)
+normal_dist <- fitdist(Aanaesthetics$A, "beta")
+plot(normal_dist)
+
+```
+
+
+```{r Kruskal-Wallis Non-parametric}
+
 # Kruskal-Wallis rank sum test, which can be used when ANNOVA assumptions are not met
 kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 ```
 
-> Some Outliers can deviate the result in Anova, Normality not very good, but Shapiro-Wilk Normality Test say it's normal, in case we don't believe this, we can use Kruskal-Wallis chi-squared and see p-value over 10% so same conclusions than ANOVA.
 
-> From the output above we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the different treatment groups.
+```{r r}
+
+
+
+```
+
 
 # Results
 
@@ -195,13 +209,7 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 ```
 
-```{r}
-library(fitdistrplus)
-descdist(Aanaesthetics$A, discrete = FALSE)
-normal_dist <- fitdist(Aanaesthetics$A, "beta")
-plot(normal_dist)
 
-```
 
 References
 
