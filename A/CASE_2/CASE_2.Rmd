@@ -81,11 +81,6 @@ datatable(Aanaesthetics_Pivoted)
 
 ## 1. Data Exploratory Analysis
 
-```{r Summary Statistics}
-
-
-```
-
 ### Outliers
 
 ```{r Outliers}
@@ -147,13 +142,7 @@ ANOVA_Summary
 
 ### Check Assumptions
 
-> 1.  Homoskedasticity
->
-> <!-- -->
->
-> 2.  Normality
-
-#### Anova Checks
+#### Plots
 
 ```{r Anova Checks}
 
@@ -165,24 +154,63 @@ par(mfrow=c(1,1))
 # Extract the residuals
 ANOVA_Residuals <- residuals(object = ANOVA )
 
-# Levene's Test
+```
+
+> Residuals not very good. Need to check Normality and Homogeneity (All populations variances are equal).
+
+#### Levene Test For Homogeneity
+
+> "Levene's test is an alternative to Bartlett's test when the data is not normally distributed. So, we consider the null and alternate hypotheses.
+>
+> -   The Null hypothesis is variances across all samples are equal. 
+>
+> -   The alternative hypothesis is at least one sample has a different variance.
+>
+> -    We will test the null hypothesis at 0.05 significance level i.e 95% percentile."
+
+[Levene’s Test in R Programming](https://www.geeksforgeeks.org/levenes-test-in-r-programming/)
+
+```{r Levene Test}
+
 leveneTest(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
-# Run Shapiro-Wilk test
-shapiro.test(x = ANOVA_Residuals )
+```
+
+> We cannot reject at 0.05, thus variance across all samples are equals (Homogeneity met).
+
+#### Shapiro-Wilk Test For Normality
+
+> "The Shapiro-Wilk\'s test or Shapiro test is a normality test in frequentist statistics. The null hypothesis of Shapiro\'s test is that the population is distributed normally. It is among the three tests for normality designed for detecting all kinds of departure from normality. If the value of p is equal to or less than 0.05, then the hypothesis of normality will be rejected by the Shapiro test. On failing, the test can state that the data will not fit the distribution normally with 95% confidence."
+
+[Shapiro–Wilk Test in R Programming](https://www.geeksforgeeks.org/shapiro-wilk-test-in-r-programming/)
+
+```{r Shapiro-Wilk Test}
+
+shapiro.test(x = ANOVA_Residuals)
 
 ```
 
-> Some Outliers can deviate the result in Anova, Normality not very good, but Shapiro-Wilk Normality Test say it's normal, in case we don't believe this, we can use Kruskal-Wallis chi-squared and see p-value over 10% so same conclusions than ANOVA.
+> We can reject at 0.05, thus the normality is not met.
 
+### Distributions of Groups
 
 ```{r Distribution}
+
 descdist(Aanaesthetics$A, discrete = FALSE)
-normal_dist <- fitdist(Aanaesthetics$A, "beta")
-plot(normal_dist)
+
+descdist(Aanaesthetics$B, discrete = FALSE)
+
+descdist(Aanaesthetics$C, discrete = FALSE)
+
+descdist(Aanaesthetics$D, discrete = FALSE)
 
 ```
 
+> We can see that all Anaesthetic groups are beta distributed, thus the Shapiro–Wilk Test being rejected.
+
+> We can deal with the Assumptions for ANOVA not being met with a Non-Parametric Test, Kruskal-Wallis Test giving the same answer to ANOVA. 
+
+### Kurskal-Wallis Test
 
 ```{r Kruskal-Wallis Non-parametric}
 
@@ -191,23 +219,7 @@ kruskal.test(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 
 ```
 
-
-```{r r}
-
-
-
-```
-
-
-# Results
-
-```{r Resuts}
-
-
-
-
-
-```
+> We cannot reject Kruskal-Wallis Rank Sum Test, thus there is no differences in groups mean.
 
 
 
