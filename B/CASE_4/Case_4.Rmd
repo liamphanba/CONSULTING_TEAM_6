@@ -70,3 +70,9 @@ tbl_strata <-
   )
 tbl_strata
 ```
+
+# References {.unnumbered}
+
+[gtsummary](https://www.danieldsjoberg.com/gtsummary/)
+
+[Stratified gtsummary tables](https://www.danieldsjoberg.com/gtsummary/reference/tbl_strata.html)
