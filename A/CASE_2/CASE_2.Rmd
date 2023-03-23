@@ -73,8 +73,15 @@ col_order <- c("Patient", "Time", "Anaesthetic")
 Aanaesthetics_Pivoted <- Aanaesthetics_Pivoted[, col_order]
 
 datatable(Aanaesthetics)
-datatable(Aanaesthetics_Pivoted)
                               
+```
+
+# Dataset Pivoted
+
+```{r Pivoted}
+
+datatable(Aanaesthetics_Pivoted)
+
 ```
 
 # Analysis
@@ -177,6 +184,29 @@ leveneTest(Time ~ Anaesthetic, data = Aanaesthetics_Pivoted)
 ```
 
 > We cannot reject at 0.05, thus variance across all samples are equals (Homogeneity met).
+
+
+#### Normality Plot 
+
+```{r Normal plots}
+
+GroupA <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Anaesthetic == "A",]
+A <- ggplot(GroupA, aes(sample = Time))
+A + stat_qq() + stat_qq_line() + labs(title = "QQ-Plot", subtitle = "Aanesthetic A", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=8,face = "bold")) + theme(axis.title = element_text(size =12)) 
+
+GroupB <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Anaesthetic == "B",]
+B <- ggplot(GroupB, aes(sample = Time))
+B + stat_qq() + stat_qq_line() + labs(title = "QQ-Plot", subtitle = "Aanesthetic B", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=8,face = "bold")) + theme(axis.title = element_text(size =12))  
+  
+GroupC <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Anaesthetic == "C",]
+C <- ggplot(GroupC, aes(sample = Time))
+C + stat_qq() + stat_qq_line() + labs(title = "QQ-Plot", subtitle = "Aanesthetic C", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=8,face = "bold")) + theme(axis.title = element_text(size =12)) 
+
+GroupD <- Aanaesthetics_Pivoted[Aanaesthetics_Pivoted$Anaesthetic == "D",]
+D <- ggplot(GroupD, aes(sample = Time))
+D + stat_qq() + stat_qq_line() + labs(title = "QQ-Plot", subtitle = "Aanesthetic D", caption = "©2023 Alpine Insights", y="Minutes") +  theme_minimal() + theme(plot.title = element_text(face = "bold")) + theme(legend.position = "none") + theme(axis.text.x=element_text(size=8,face = "bold")) + theme(axis.title = element_text(size =12)) 
+
+```
 
 #### Shapiro-Wilk Test For Normality
 
