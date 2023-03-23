@@ -228,3 +228,7 @@ References
 [One-Way ANOVA Test in R](http://www.sthda.com/english/wiki/one-way-anova-test-in-r)
 
 [Anaesthesia](https://www.nhs.uk/conditions/anaesthesia/)
+
+[Shapiro–Wilk Test in R Programming](https://www.geeksforgeeks.org/shapiro-wilk-test-in-r-programming/)
+
+[Levene’s Test in R Programming](https://www.geeksforgeeks.org/levenes-test-in-r-programming/)
