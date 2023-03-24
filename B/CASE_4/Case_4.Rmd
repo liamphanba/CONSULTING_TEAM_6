@@ -40,7 +40,8 @@ kable(summary(teaching))
 ```
 
 ```{r}
-teaching_strata <- tbl_strata(teaching, c('GROUP', 'SESSION'), )
+teaching$index = 1:nrow(teaching)
+tsibble::tsibble(teaching, index = index)
 
 table1 <- tbl_summary(
   teaching,
@@ -69,6 +70,18 @@ tbl_strata <-
     .header = "**{strata}**, N = {n}"
   )
 tbl_strata
+```
+
+## Dummy encoding
+
+```{r}
+library(fastDummies)
+teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF', 'GENDER', 'SLEVEL'), remove_selected_columns = TRUE, remove_first_dummy = TRUE)
+```
+
+```{r}
+mod <- lm(POST - PRE ~., data = teaching)
+summary(mod)
 ```
 
 # References {.unnumbered}
