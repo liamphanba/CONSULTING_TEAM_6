@@ -80,9 +80,19 @@ teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF
 ```
 
 ```{r}
-mod <- lm(POST - PRE ~., data = teaching)
+library(dplyr)
+teaching$DIFF <- teaching$POST - teaching$PRE
+mod <- lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST, ATT)))
+mod <- lm(ATT ~., data = subset(teaching, select = -c(PRE, POST, DIFF)))
 summary(mod)
+plot(mod)
+
+
+source(file="RFn_Plot-lmSim.R")
+plot.lmSim(mod)
 ```
+
+I guess we can assum normality as qqplot in bootstrap. 
 
 # References {.unnumbered}
 
