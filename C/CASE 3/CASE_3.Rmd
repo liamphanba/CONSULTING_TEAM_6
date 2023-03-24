@@ -1,0 +1,14 @@
+---
+title: "CASE_3"
+author: "Liam Phan, Michael Bigler, Tania Loureiro, William Elkiess, Dakota Cuellar and Ilyana El Mendili"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::downcute:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALSE,options(scipen=999))
+rm(list = ls())
+```
+
