@@ -126,9 +126,26 @@ Boxplot
 
 ```{r Histograms}
 
-Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + scale_fill_manual(values=c("#2B3433", "#2F4F4E", "#0D8387", "#CBE4DE")) + theme_minimal() + labs(fill="") + facet_wrap(~Anaesthetic) + theme(plot.title = element_text(face = "bold")) + labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + theme(legend.position = "none") + theme(axis.title = element_text(size =12)) + theme(strip.text.x = element_text(size = 12,face = "bold"))         
-Histograms
 
+med <- Aanaesthetics_Pivoted %>% group_by(Anaesthetic) %>% summarise(median = median(Time))
+
+
+Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) + 
+  geom_histogram( color="#e9ecef", alpha=1, position = 'identity', binwidth = 1) + 
+  scale_fill_manual(values=c("#2B3433", "#2F4F4E", "#0D8387", "#CBE4DE")) + 
+  theme_minimal() + 
+  labs(fill="") + 
+  facet_wrap(~Anaesthetic) + 
+  theme(plot.title = element_text(face = "bold")) + 
+  labs(title = "Histograms", subtitle = "Aanesthetics", caption = "©2023 Alpine Insights", y="Count") + 
+  theme(legend.position = "none") + 
+  theme(axis.title = element_text(size =12)) + 
+  theme(strip.text.x = element_text(size = 12,face = "bold")) +
+  geom_vline(data = med, aes(xintercept = median, color = Anaesthetic), lwd = 1) +
+  scale_color_manual(values=c("red", "red", "red", "red")) +
+  labs(color = "Anaesthetic", subtitle = paste("Median by Anaesthetic: ", paste(paste(med$Anaesthetic, " = ", med$median), collapse = ", ")))
+
+Histograms
 ```
 
 ## 2. Core Analysis
