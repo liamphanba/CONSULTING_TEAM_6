@@ -141,9 +141,11 @@ Histograms <- Aanaesthetics_Pivoted %>% ggplot( aes(x=Time, fill=Anaesthetic)) +
   theme(legend.position = "none") + 
   theme(axis.title = element_text(size =12)) + 
   theme(strip.text.x = element_text(size = 12,face = "bold")) +
-  geom_vline(data = med, aes(xintercept = median, color = Anaesthetic), lwd = 1) +
+  geom_vline(data = med, aes(xintercept = median, color = Anaesthetic), lwd = 0.5) +
   scale_color_manual(values=c("red", "red", "red", "red")) +
-  labs(color = "Anaesthetic", subtitle = paste("Median by Anaesthetic: ", paste(paste(med$Anaesthetic, " = ", med$median), collapse = ", ")))
+  labs(color = "Anaesthetic", subtitle = paste("Median by Anaesthetic: ", paste(paste(med$Anaesthetic, " = ", med$median), collapse = ", "))) +
+  xlab("Time (in minutes)") +
+  ylab("Count")
 
 Histograms
 ```
