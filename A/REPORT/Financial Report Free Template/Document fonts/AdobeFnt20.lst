@@ -1,0 +1,112 @@
+%!Adobe-FontList 1.20
+%Locale:0x409
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:GangsterGrotesk-Regular
+FamilyName:Gangster Grotesk
+StyleName:Regular
+MenuName:Gangster Grotesk
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Gangster Grotesk Regular
+WritingScript:Roman
+OutlineFileName:/Users/Leart/Desktop/D-Ziner/Financial Report Free Template/Document fonts/GangsterGrotesk-Regular.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:56028
+FileModTime:574248806
+NameArray:0,Mac,4,Gangster Grotesk Regular
+NameArray:0,Win,1,Gangster Grotesk
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Invalid
+OutlineFileName:/Users/Leart/Desktop/D-Ziner/Financial Report Free Template/Document fonts/AdobeFnt20.lst
+FileLength:2365
+FileModTime:597095802
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:NexaBold
+FamilyName:Nexa Bold
+StyleName:Regular
+MenuName:Nexa Bold
+StyleBits:2
+WeightClass:700
+WidthClass:5
+AngleClass:0
+FullName:Nexa Bold
+WritingScript:Roman
+OutlineFileName:/Users/Leart/Desktop/D-Ziner/Financial Report Free Template/Document fonts/Nexa Bold.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:30388
+FileModTime:364504818
+NameArray:0,Mac,4,Nexa Bold
+NameArray:0,Win,1,Nexa Bold
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:MinionPro-Regular
+FamilyName:Minion Pro
+StyleName:Regular
+MenuName:Minion Pro
+StyleBits:0
+WeightClass:400
+WidthClass:5
+AngleClass:0
+FullName:Minion Pro
+WritingScript:Roman
+OutlineFileName:/Users/Leart/Desktop/D-Ziner/Financial Report Free Template/Document fonts/MinionPro-Regular.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:218640
+FileModTime:559261392
+DesignSize:110
+NameArray:0,Mac,4,Minion Pro
+NameArray:0,Win,1,Minion Pro
+%EndFont
+
+%BeginFont
+Handler:DirectoryHandler
+FontType:Type1
+FontName:GangsterGrotesk-Bold
+FamilyName:Gangster Grotesk
+StyleName:Bold
+MenuName:Gangster Grotesk
+StyleBits:2
+WeightClass:700
+WidthClass:5
+AngleClass:0
+FullName:Gangster Grotesk Bold
+WritingScript:Roman
+OutlineFileName:/Users/Leart/Desktop/D-Ziner/Financial Report Free Template/Document fonts/GangsterGrotesk-Bold_e1a47d593ec7fe7093ea6119c3e1e8b2.otf
+DataFormat:sfntData
+UsesStandardEncoding:yes
+isCFF:yes
+hasSVG:no
+VariableFontType:NonVariableFont
+FileLength:55252
+FileModTime:596540042
+NameArray:0,Mac,4,Gangster Grotesk Bold
+NameArray:0,Win,1,Gangster Grotesk
+%EndFont
+
