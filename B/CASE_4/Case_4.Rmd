@@ -1,7 +1,7 @@
 ---
 title: "CASE 4 - Teaching"
-author: Liam Phan, Michael Bigler, Tania Loureiro, William Elkiess, Dakota Cuellar
-  and Ilyana El Mendili
+author: Michael Bigler, Tania Loureiro, William Elkiess, Dakota Cuellar
+  and Ilyana El Mendili, Liam Phan
 date: "2023-03-10"
 output: 
   rmdformats::downcute:
