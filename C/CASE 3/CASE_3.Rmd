@@ -23,9 +23,9 @@ library(fastDummies)
 
 ```{r data loading}
 df <- readxl::read_xls('Cchurn.xls')
-df$international_plan <- factor(df$international_plan)
-df$voice_mail_plan <- factor(df$voice_mail_plan)
-df$churn <- factor(df$churn)
+df$international_plan <- factor(df$international_plan, levels = c('no', 'yes'))
+df$voice_mail_plan <- factor(df$voice_mail_plan, levels = c('no', 'yes'))
+df$churn <- factor(df$churn, levels = c('no', 'yes'))
 ```
 
 ```{r summary}
@@ -87,8 +87,6 @@ churn_predicted <- factor(ifelse(predict(mod, df[,-c(10)], type = 'response') < 
 
 library(caret)
 confusionMatrix(data=churn_predicted, reference = df$churn, positive = 'yes')
-
 ```
 
-Log regression doesn't work --> maybe we actually need to resample
-
+Log regression doesn't work. Changing the decision boundary also doesn't help. --> maybe we actually need to resample

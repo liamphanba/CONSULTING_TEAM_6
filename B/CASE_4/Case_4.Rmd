@@ -92,7 +92,7 @@ source(file="RFn_Plot-lmSim.R")
 plot.lmSim(mod)
 ```
 
-I guess we can assum normality as qqplot in bootstrap. 
+I guess we can assum normality as qqplot in bootstrap.
 
 # References {.unnumbered}
 
