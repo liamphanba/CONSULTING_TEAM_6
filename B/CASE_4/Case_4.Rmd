@@ -100,6 +100,31 @@ VIF(mod)
 
 Shows which variables have higher importance
 
+# Selection of variables 
+
+[selections](https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html)
+[more selections and lasso regression](https://rpubs.com/fractalbass/601525)
+
+
+## regsubsets
+
+```{r}
+library(leaps)
+models <- regsubsets(DIFF~., data = subset(teaching, select = -c(PRE, POST)), nvmax = 10,
+                     method = "seqrep")
+summary(models)
+
+# http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/155-best-subsets-regression-essentials-in-r/
+```
+## forward 
+
+```{r}
+mod4 <- lm(DIFF ~ 1, subset(teaching, select = -c(PRE, POST)))
+step(mod4, direction='forward', scope=formula(lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST)))))
+```
+
+## backward 
+
 ```{r}
 s <- step(mod, direction = 'backward')
 s
