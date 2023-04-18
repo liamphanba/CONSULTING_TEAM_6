@@ -82,8 +82,7 @@ teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF
 ```{r}
 library(dplyr)
 teaching$DIFF <- teaching$POST - teaching$PRE
-mod <- lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST, ATT)))
-mod <- lm(ATT ~., data = subset(teaching, select = -c(PRE, POST, DIFF)))
+mod <- lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST)))
 summary(mod)
 plot(mod)
 
@@ -92,7 +91,36 @@ source(file="RFn_Plot-lmSim.R")
 plot.lmSim(mod)
 ```
 
-I guess we can assum normality as qqplot in bootstrap.
+I guess we can assume normality as qqplot in bootstrap.
+
+```{r}
+library(regclass)
+VIF(mod)
+```
+
+Shows which variables have higher importance
+
+```{r}
+s <- step(mod, direction = 'backward')
+s
+mod2 <- lm(DIFF ~ ATT + GROUP_Experiment + SESSION_S2 + PREF_N + PREF_K + PREF_V, subset(teaching, select = -c(PRE, POST)))
+
+summary(mod2)
+```
+
+Selects the best model backwards which makes some variables significant. 
+
+Now a model which would make sense
+
+```{r}
+# model due to sense
+mod3 <- lm(DIFF ~ ATT + GROUP_Experiment + PREF_N + PREF_K + 
+    PREF_V + PREF_T, subset(teaching, select = -c(PRE, POST)))
+
+summary(mod3)
+```
+
+
 
 # References {.unnumbered}
 
