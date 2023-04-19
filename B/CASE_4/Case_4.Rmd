@@ -146,6 +146,241 @@ summary(mod3)
 ```
 
 
+```{r include=FALSE}
+library(readxl)
+BB <- read_excel("Bteaching.xls")
+bt <- read_excel("Bteaching.xls")
+data <- read_excel("Bteaching.xls")
+```
+
+$$
+We\ build\ a\ GLM\ model:\\ \\POST\ = GROUP + PREF + PRE
+$$
+
+```{r}
+# Convert GROUP and PREF to factors
+#data$GROUP <- factor(data$GROUP)
+#data$PREF <- factor(data$PREF)
+data <- read_excel("Bteaching.xls")
+library(ggplot2)
+data$GENDER <- ifelse(data$GENDER == "M", 0, 1)
+data$GROUP <- ifelse(data$GROUP == "C", 0, 1)
+data$SLEVEL <- ifelse(data$SLEVEL == "E", 0, 1)
+data$SESSION <- ifelse(data$SESSION == "S1", 1, 
+                        ifelse(data$SESSION == "S2", 2, 
+                               ifelse(data$SESSION == "S3", 3, 
+                                      ifelse(data$SESSION == "S4", 4, NA))))
+data$PREF <- ifelse(data$PREF == "A", 1, 
+                        ifelse(data$PREF == "K", 2, 
+                               ifelse(data$PREF == "N", 3, 
+                                      ifelse(data$PREF == "T", 4,
+                                             ifelse(data$PREF == "V", 5, NA)))))
+
+colnames(data)[1] <- "Group"
+colnames(data)[2] <- "Session"
+colnames(data)[3] <- "Preference"
+colnames(data)[4] <- "Gender"
+colnames(data)[5] <- "School Level"
+colnames(data)[6] <- "Pre Test Score"
+colnames(data)[7] <- "Post Test Score"
+colnames(data)[8] <- "Attention Test Score"
+require(corrplot)
+
+#2B3433, #2F4F4E, #0D8387, #CBE4DE
+#("#FF0000", "#FFFFFF", "#0000FF")
+cor_mat <- cor(data[, 7], data[, -7], method = "spearman")
+col <- colorRampPalette(c("#2B3433", "#FFFFFF", "#0D8387"))(25)
+corrplot(cor_mat, col = col, tl.col = "black",
+         tl.srt = 40, tl.cex = 1.2,
+         title = "Correlation Matrix", mar = c(0, 0, 1, 0))
+#I have this corrplot i want to order the correlation circles from highest to lowest correlation
+# Select the 7th column of the data and compute the correlation matrix
+
+
+```
+
+```{r}
+data <- read_excel("Bteaching.xls")
+
+data$SLEVEL <- factor(data$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+data$PREF <- factor(data$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V'))
+data$GROUP <- factor(data$GROUP)
+
+
+modelGLMAAA <- glm(formula = POST ~ GROUP + PRE, data = data, family =gaussian(link = "identity"))
+summary(modelGLMAAA)
+
+```
+
+
+```{r}
+data <- read_excel("Bteaching.xls")
+data$GENDER <- ifelse(data$GENDER == "M", 0, 1)
+data$GROUP <- ifelse(data$GROUP == "C", 0, 1)
+data$SESSION <- ifelse(data$SESSION == "S1", 1, 
+                        ifelse(data$SESSION == "S2", 2, 
+                               ifelse(data$SESSION == "S3", 3, 
+                                      ifelse(data$SESSION == "S4", 4, NA))))
+bn <- subset(data, PRE < 56)
+bf <- subset(data, PRE > 57)
+bn$SLEVEL <- factor(bn$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+bn$PREF <- factor(bn$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V'))
+bn$GROUP <- factor(bn$GROUP)
+
+
+bf$SLEVEL <- factor(bf$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+bf$PREF <- factor(bf$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V'))
+bf$GROUP <- factor(bf$GROUP)
+
+modelGLMbn <- glm(formula = POST ~  GROUP + PRE , data = bn, family =gaussian(link = "identity"))
+summary(modelGLMbn)
+modelGLMbf <- glm(formula = POST ~  GROUP + PRE , data = bf, family =gaussian(link = "identity"))
+summary(modelGLMbf)
+```
+
+```{r}
+data <- read_excel("Bteaching.xls")
+data$GENDER <- ifelse(data$GENDER == "M", 0, 1)
+data$GROUP <- ifelse(data$GROUP == "C", 0, 1)
+data$SESSION <- ifelse(data$SESSION == "S1", 1, 
+                        ifelse(data$SESSION == "S2", 2, 
+                               ifelse(data$SESSION == "S3", 3, 
+                                      ifelse(data$SESSION == "S4", 4, NA))))
+bE <- subset(data, SLEVEL == "E")
+bH <- subset(data, SLEVEL == "H")
+bE$SLEVEL <- factor(bE$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+bE$PREF <- factor(bE$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V'))
+bE$GROUP <- factor(bE$GROUP)
+
+
+bH$SLEVEL <- factor(bH$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+bH$PREF <- factor(bH$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V'))
+bH$GROUP <- factor(bH$GROUP)
+
+modelGLMbE <- glm(formula = POST ~  GROUP + PRE, data = bE, family =gaussian(link = "identity"))
+summary(modelGLMbE)
+modelGLMbH<- glm(formula = POST ~  GROUP + PRE, data = bH, family =gaussian(link = "identity"))
+summary(modelGLMbH)
+```
+
+
+
+
+```{r}
+data <- read_excel("Bteaching.xls")
+
+data$GENDER <- factor(data$GENDER)
+data$GROUP <- factor(data$GROUP)
+data$SLEVEL <- factor(data$SLEVEL)
+data$SESSION <- factor(data$SESSION)
+data$PREF <- factor(data$PREF)
+#data$PREF1A <- ifelse(data$PREF == "A", 1, 10)
+#data$PREF2K <- ifelse(data$PREF == "K", 2, 10)
+#data$PREF3N <- ifelse(data$PREF == "N", 3, 10)
+#data$PREF5V <- ifelse(data$PREF == "V", 5, 10)
+#data$PREF4T <- ifelse(data$PREF == "T", 4, 10)
+
+modelGLM2 <- glm(POST ~  PRE + PREF + GENDER, data = data, family =gaussian(link = "identity"))
+summary(modelGLM2)
+plot(modelGLM2)
+```
+
+
+```{r}
+library(ggplot2)
+btc <- subset(BB, GROUP == "C")
+bte <- subset(BB, GROUP == "E")
+
+# Combine the data into a data frame
+dataCE <- data.frame(group = c(rep("Control", length(btc$POST)), rep("Experiment", length(bte$POST))), value = c(btc$POST, bte$POST))
+
+# Create the box plot graph
+ggplot(dataCE, aes(x = group, y = value, fill = group)) + geom_boxplot() + theme_classic()
+
+# Combine the data into a data frame
+dataCE <- data.frame(group = c(rep("Control", length(btc$POST)), rep("Experiment", length(bte$POST))), value = c(btc$POST, bte$POST))
+
+
+# Data frame for each preference for the control group
+bc <- subset(BB, GROUP == "C")
+
+bta <- subset(bc, PREF == "A")
+btk <- subset(bc, PREF == "K")
+btn <- subset(bc, PREF == "N")
+btt <- subset(bc, PREF == "T")
+btv <- subset(bc, PREF == "V")
+
+
+dataAKNTV <- data.frame(group = c(rep("Auditory", length(bta$POST)), rep("Kinesthetic",length(btk$POST)), rep("No preference", length(btn$POST)), rep("Tactile", length(btt$POST)), rep("Visual", length(btv$POST))), value = c(bta$POST, btk$POST, btn$POST, btt$POST, btv$POST))
+
+ggplot(dataAKNTV, aes(x = group, y = value, fill = group)) + geom_boxplot() + theme_classic()
+
+
+# Data frame for each preference for the experiment group
+be <- subset(BB, GROUP == "E")
+
+bta <- subset(be, PREF == "A")
+btk <- subset(be, PREF == "K")
+btn <- subset(be, PREF == "N")
+btt <- subset(be, PREF == "T")
+btv <- subset(be, PREF == "V")
+
+
+
+dataAKNTV <- data.frame(group = c(rep("Auditory", length(bta$POST)), rep("Kinesthetic",length(btk$POST)), rep("No preference", length(btn$POST)), rep("Tactile", length(btt$POST)), rep("Visual", length(btv$POST))), value = c(bta$POST, btk$POST, btn$POST, btt$POST, btv$POST))
+
+ggplot(dataAKNTV, aes(x = group, y = value, fill = group)) + geom_boxplot() + theme_classic()
+
+
+
+btm <- subset(BB, GENDER == "M")
+btf <- subset(BB, GENDER == "F")
+
+# Combine the data into a data frame
+dataMF <- data.frame(group = c(rep("Male", length(btm$POST)), rep("Female", length(btf$POST))), value = c(btm$POST, btf$POST))
+
+# Create the box plot graph
+ggplot(dataMF, aes(x = group, y = value, fill = group)) + geom_boxplot() + theme_classic()
+mean(btf$POST)-mean(btm$POST)
+mean(btf$PRE)-mean(btm$PRE)
+mean(btm$POST)
+```
+
+
+We have a dataset of 87 students, with 8 variables. (qualitative and quatitative)
+– GROUP: C = ‘Control’ (i.e. traditional teaching methods), E =
+‘Experiment’ (i.e. incorporated learning styles);
+– SESSION: students were randomly assigned to 1 of 4 sessions (denoted by
+S1 to S4) within each GROUP;
+– PREF: students’ learning style preference (T = ‘Tactile’, K =
+‘Kinesthetic’, A = ‘Auditory’, V = ‘Visual’, N = ‘No preference’);
+– GENDER: M = male, F = female;
+– SLEVEL: school level (E = ‘Elementary, H = ‘High School’);
+– PRE: pre-test score (out of 100);
+– POST: post-test score (out of 100);
+– ATT: attitude scale score (out of 60).
+
+We want to know if the students in the experiment group who were able to choose a PREF scored higher in a POST test than the students who were in a control group. PREF is the response variable. Build a model in R to answer the question.
+The client wants you to investigate his research hypothesis that students in training sessions that utilise a processing activity that matches the students’ perceptual learning style preferences will demonstrate greater long-term retention of content than students in a traditional setting that has not utilised that processing activity.
+Build a model in R considering t
+
+
+```{r}
+
+data <- read_excel("Bteaching.xls")
+# Create a new variable for matching learning style preference
+data$MATCH <- ifelse(data$PREF == "N", "ALL", data$PREF)
+
+# Split the data into Control and Experiment groups
+control_data <- subset(data, GROUP == "C")
+experiment_data <- subset(data, GROUP == "E")
+
+# Calculate the mean post-test scores for each group and learning style preference
+control_means <- aggregate(control_data$POST, by = list(control_data$MATCH), FUN = mean)
+experiment_means <- aggregate(experiment_data$POST, by = list(experiment_data$MATCH), FUN = mean)
+
+```
+
 
 # References {.unnumbered}
 
