@@ -1,0 +1,92 @@
+---
+title: "CASE_3"
+author: "Liam Phan, Michael Bigler, Tania Loureiro, William Elkiess, Dakota Cuellar and Ilyana El Mendili"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::downcute:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALSE,options(scipen=999))
+rm(list = ls())
+```
+
+```{r packages}
+library(DT)
+library(summarytools)
+library(corrplot)
+library(dplyr)
+library(GGally)
+library(fastDummies)
+```
+
+```{r data loading}
+df <- readxl::read_xls('Cchurn.xls')
+df$international_plan <- factor(df$international_plan, levels = c('no', 'yes'))
+df$voice_mail_plan <- factor(df$voice_mail_plan, levels = c('no', 'yes'))
+df$churn <- factor(df$churn, levels = c('no', 'yes'))
+```
+
+```{r summary}
+print(summarytools::dfSummary(df), method = 'render')
+```
+
+* We have no missing values -> perfect
+* Heavily uneven counts of dependent variable (86 % no / 14 % yes) -> maybe sample for equality / maybe not because we loose information of other data
+* Independent variables are on different scales -> standardize
+* two (maybe three) categorical predictors: International plan / voice_mail_plan (/ maybe number_customer_service_calls) -> dummy encode -> not necessary as already 0 and 1
+* Rest of data is numeric and most of the variables looks normally distributed with exception of number_vmail_messages and totat_intl_calls
+  * transform these value to make them normal?
+  * maybe make parts of them categorical? (recieving voice mail or not, calling internationally or not)
+  * or maybe the categorical values that we have already give an indication for this
+  * Test normality of variables
+* Can variables be combined? We have day / eve / night / intl calls and for each of them minutes / calls / charge. Maybe we can combine this into one metric. Maybe average cost per minute or average cost per call? 
+
+```{r correlation}
+df_numeric <- select_if(df, is.numeric)  # Subset numeric columns with dplyr
+M <- cor(df_numeric)
+corrplot(M, method = 'circle', addCoef.col = 1,number.cex = 0.4, tl.cex = 0.4, diag = FALSE, type = 'upper') # colorful number
+```
+
+Proves theory from before -> we can make one metric out of charge and minutes --> charge / minutes
+
+```{r transform metrics}
+df$total_day_charge_per_minute <- ifelse(df$total_day_minutes == 0, 0, df$total_day_charge / df$total_day_minutes)
+df$total_eve_charge_per_minute <- ifelse(df$total_eve_minutes == 0, 0, df$total_eve_charge / df$total_eve_minutes)
+df$total_night_charge_per_minute <- ifelse(df$total_night_minutes == 0, 0, df$total_night_charge / df$total_night_minutes)
+df$total_intl_charge_per_minute <- ifelse(df$total_intl_minutes == 0, 0, df$total_intl_charge / df$total_intl_minutes)
+df <- subset(df, select = -c(total_day_charge, total_day_minutes, total_eve_charge, total_eve_minutes, total_night_charge, total_night_minutes, total_intl_charge, total_intl_minutes))
+```
+
+```{r correlation 2}
+df_numeric <- select_if(df, is.numeric)  # Subset numeric columns with dplyr
+M <- cor(df_numeric)
+corrplot(M, method = 'circle', addCoef.col = 1,number.cex = 0.4, tl.cex = 0.4, diag = FALSE, type = 'upper') # colorful number
+```
+
+Now we have non correlated data
+
+```{r pairs}
+# p <- ggpairs(df)
+# p
+```
+
+```{r standardize}
+df <- df %>% 
+  mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+```
+
+##  logistic regression
+
+```{r predict}
+mod <- glm(churn ~., data = df, family = binomial(link='logit'))
+summary(mod)
+
+churn_predicted <- factor(ifelse(predict(mod, df[,-c(10)], type = 'response') < 0.5, 'no', 'yes'))
+
+library(caret)
+confusionMatrix(data=churn_predicted, reference = df$churn, positive = 'yes')
+```
+
+Log regression doesn't work. Changing the decision boundary also doesn't help. --> maybe we actually need to resample
