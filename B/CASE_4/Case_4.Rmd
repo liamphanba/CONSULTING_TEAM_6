@@ -100,11 +100,9 @@ VIF(mod)
 
 Shows which variables have higher importance
 
-# Selection of variables 
+# Selection of variables
 
-[selections](https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html)
-[more selections and lasso regression](https://rpubs.com/fractalbass/601525)
-
+[selections](https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html) [more selections and lasso regression](https://rpubs.com/fractalbass/601525)
 
 ## regsubsets
 
@@ -116,14 +114,15 @@ summary(models)
 
 # http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/155-best-subsets-regression-essentials-in-r/
 ```
-## forward 
+
+## forward
 
 ```{r}
 mod4 <- lm(DIFF ~ 1, subset(teaching, select = -c(PRE, POST)))
 step(mod4, direction='forward', scope=formula(lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST)))))
 ```
 
-## backward 
+## backward
 
 ```{r}
 s <- step(mod, direction = 'backward')
@@ -133,7 +132,7 @@ mod2 <- lm(DIFF ~ ATT + GROUP_Experiment + SESSION_S2 + PREF_N + PREF_K + PREF_V
 summary(mod2)
 ```
 
-Selects the best model backwards which makes some variables significant. 
+Selects the best model backwards which makes some variables significant.
 
 Now a model which would make sense
 
@@ -144,7 +143,6 @@ mod3 <- lm(DIFF ~ ATT + GROUP_Experiment + PREF_N + PREF_K +
 
 summary(mod3)
 ```
-
 
 ```{r include=FALSE}
 library(readxl)
@@ -212,7 +210,6 @@ summary(modelGLMAAA)
 
 ```
 
-
 ```{r}
 data <- read_excel("Bteaching.xls")
 data$GENDER <- ifelse(data$GENDER == "M", 0, 1)
@@ -263,9 +260,6 @@ modelGLMbH<- glm(formula = POST ~  GROUP + PRE, data = bH, family =gaussian(link
 summary(modelGLMbH)
 ```
 
-
-
-
 ```{r}
 data <- read_excel("Bteaching.xls")
 
@@ -284,7 +278,6 @@ modelGLM2 <- glm(POST ~  PRE + PREF + GENDER, data = data, family =gaussian(link
 summary(modelGLM2)
 plot(modelGLM2)
 ```
-
 
 ```{r}
 library(ggplot2)
@@ -346,24 +339,9 @@ mean(btf$PRE)-mean(btm$PRE)
 mean(btm$POST)
 ```
 
+We have a dataset of 87 students, with 8 variables. (qualitative and quatitative) -- GROUP: C = 'Control' (i.e. traditional teaching methods), E = 'Experiment' (i.e. incorporated learning styles); -- SESSION: students were randomly assigned to 1 of 4 sessions (denoted by S1 to S4) within each GROUP; -- PREF: students' learning style preference (T = 'Tactile', K = 'Kinesthetic', A = 'Auditory', V = 'Visual', N = 'No preference'); -- GENDER: M = male, F = female; -- SLEVEL: school level (E = 'Elementary, H = 'High School'); -- PRE: pre-test score (out of 100); -- POST: post-test score (out of 100); -- ATT: attitude scale score (out of 60).
 
-We have a dataset of 87 students, with 8 variables. (qualitative and quatitative)
-– GROUP: C = ‘Control’ (i.e. traditional teaching methods), E =
-‘Experiment’ (i.e. incorporated learning styles);
-– SESSION: students were randomly assigned to 1 of 4 sessions (denoted by
-S1 to S4) within each GROUP;
-– PREF: students’ learning style preference (T = ‘Tactile’, K =
-‘Kinesthetic’, A = ‘Auditory’, V = ‘Visual’, N = ‘No preference’);
-– GENDER: M = male, F = female;
-– SLEVEL: school level (E = ‘Elementary, H = ‘High School’);
-– PRE: pre-test score (out of 100);
-– POST: post-test score (out of 100);
-– ATT: attitude scale score (out of 60).
-
-We want to know if the students in the experiment group who were able to choose a PREF scored higher in a POST test than the students who were in a control group. PREF is the response variable. Build a model in R to answer the question.
-The client wants you to investigate his research hypothesis that students in training sessions that utilise a processing activity that matches the students’ perceptual learning style preferences will demonstrate greater long-term retention of content than students in a traditional setting that has not utilised that processing activity.
-Build a model in R considering t
-
+We want to know if the students in the experiment group who were able to choose a PREF scored higher in a POST test than the students who were in a control group. PREF is the response variable. Build a model in R to answer the question. The client wants you to investigate his research hypothesis that students in training sessions that utilise a processing activity that matches the students' perceptual learning style preferences will demonstrate greater long-term retention of content than students in a traditional setting that has not utilised that processing activity. Build a model in R considering t
 
 ```{r}
 
@@ -380,7 +358,6 @@ control_means <- aggregate(control_data$POST, by = list(control_data$MATCH), FUN
 experiment_means <- aggregate(experiment_data$POST, by = list(experiment_data$MATCH), FUN = mean)
 
 ```
-
 
 # References {.unnumbered}
 
