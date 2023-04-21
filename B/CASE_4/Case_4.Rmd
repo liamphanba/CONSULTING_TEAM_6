@@ -6,6 +6,7 @@ date: "2023-03-10"
 output: 
   rmdformats::downcute:
     code_folding: hide
+    toc_level: 6
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +33,7 @@ teaching <- readxl::read_excel('Bteaching.xls')
 teaching <- data.frame(teaching)
 teaching$GROUP <- factor(teaching$GROUP, level = c('C', 'E'), labels = c('Control', 'Experiment'))
 teaching$GENDER <- factor(teaching$GENDER, level = c('M', 'F'), labels =  c('Male', 'Female'))
-# teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
+# Don't need this teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
 teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('Auditory', 'No Preference', 'Tactile', 'Kinesthetic', 'Visual')) # get understandable lables
 teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
 ```
@@ -44,47 +45,47 @@ kable(summary(teaching))
 ```
 
 ```{r}
-# teaching$index = 1:nrow(teaching)
-# tsibble::tsibble(teaching, index = index)
-# 
-# table1 <- tbl_summary(
-#   teaching,
-#   by = GROUP, # split table by group
-#   missing = "no" # don't list missing data separately
-# ) |> 
-#   add_n() |>  # add column with total number of non-missing observations
-#   add_p() |>  # test for a difference between groups
-#   modify_header(label = "**Variable**") |> # update the column header
-#   bold_labels() 
-# table1
+teaching$index = 1:nrow(teaching)
+tsibble::tsibble(teaching, index = index)
+
+table1 <- tbl_summary(
+  teaching,
+  by = GROUP, # split table by group
+  missing = "no" # don't list missing data separately
+) |>
+  add_n() |>  # add column with total number of non-missing observations
+  add_p() |>  # test for a difference between groups
+  modify_header(label = "**Variable**") |> # update the column header
+  bold_labels()
+table1
 ```
 
 ```{r}
-# tbl_strata <-
-#   teaching |> 
-#   tbl_strata(
-#     strata = GROUP,
-#     .tbl_fun =
-#       ~ .x |>
-#         tbl_summary(by = SESSION, missing = "no") |>
-#       add_n() |>  # add column with total number of non-missing observations
-#       add_p() |>  # test for a difference between groups
-#       modify_header(label = "**Variable**") |> # update the column header
-#       bold_labels() ,
-#     .header = "**{strata}**, N = {n}"
-#   )
-# tbl_strata
+tbl_strata <-
+  teaching |>
+  tbl_strata(
+    strata = GROUP,
+    .tbl_fun =
+      ~ .x |>
+        tbl_summary(by = SESSION, missing = "no") |>
+      add_n() |>  # add column with total number of non-missing observations
+      add_p() |>  # test for a difference between groups
+      modify_header(label = "**Variable**") |> # update the column header
+      bold_labels() ,
+    .header = "**{strata}**, N = {n}"
+  )
+tbl_strata
 ```
 
 ## Dummy encoding
 
 ```{r}
 library(fastDummies)
-teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF', 'GENDER', 'SLEVEL', 'TAUGHT'), remove_selected_columns = TRUE, remove_first_dummy = TRUE)
+teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF', 'GENDER', 'SLEVEL'), remove_selected_columns = TRUE, remove_first_dummy = TRUE)
 ```
 
 
-## DID
+# DID
 
 ```{r}
 teaching$ID <- 1:nrow(teaching)
@@ -95,18 +96,18 @@ teaching_DID <- subset(teaching_DID, select = -c(POST, PRE))
 ```
 
 
-### DID without covariates
+## DID without covariates
 
 ```{r}
 DID <- lm(OUTCOME ~ POST_ind + GROUP_Experiment + GROUP_Experiment*POST_ind, teaching_DID)
 summary(DID)
 plot(DID)
-plot.glmSim(DID)
+plot.lmSim(DID)
 ```
 
 There is a treatment effect but no difference in the beginning between the groups. 
 
-### DID with covariates 
+## DID with covariates 
 
 ```{r}
 mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2 + SESSION_S3 + SESSION_S4 + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID)
@@ -115,16 +116,25 @@ plot(mod)
 plot.lmSim(mod)
 ```
 
-#### Selection of variables
+Model seems fine. We check the gam for linearity (of ATT as it is the only numerical value)
+
+```{r}
+# Check gam
+library(gam)
+mod.gam <- gam(OUTCOME ~ lo(ATT) + GROUP_Experiment + SESSION_S2 + SESSION_S3 + SESSION_S4 + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID, family = gaussian(link = 'identity'))
+plot(mod.gam, se = T)
+```
+
+Gam is fine. Linearity is ok. 
+
+### Selection of variables
 
 ```{r}
 library(regclass)
 sort(VIF(mod), decreasing = TRUE)
 ```
 
-Shows which variables have higher importance but we don't 
-
-[selections](https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html) [more selections and lasso regression](https://rpubs.com/fractalbass/601525)
+Shows which variables have higher importance but we don't use this in the end
 
 ##### forward
 
@@ -154,49 +164,17 @@ s$call
 
 ##### Model
 
-AS forward, backward and combined variable seleciton give the same model we fit it. 
+Based on forward and backward selection as well as the combination  we fit the following model
 
 ```{r}
-mod2 <- lm(formula = OUTCOME ~ POST_ind + ATT + SESSION_S3 + PREF_Visual + GROUP_Experiment*POST_ind,
+mod2 <- lm(formula = lm(formula = OUTCOME ~ ATT + GROUP_Experiment + SESSION_S3 + PREF_Visual + POST_ind + GROUP_Experiment:POST_ind, data = teaching_DID),
     data = teaching_DID)
 summary(mod2)
 plot(mod2)
 plot.lmSim(mod2)
 ```
 
-There is a no impact of the experiment per se
-
-### regsubsets
-
-```{r}
-models <- leaps::regsubsets(OUTCOME~., data = teaching_DID, nvmax = 20,
-                     method = "seqrep")
-s <- summary(models)
-
-s$which[which.max(s$adjr2),]
-mod45 <- lm(OUTCOME ~ ATT + SESSION_S2 + SESSION_S3 + `PREF_No Preference` + PREF_Visual + TAUGHT_Tactile + TAUGHT_Visual + POST_ind, teaching_DID)
-summary(mod45)
-```
-
-
-### random
-```{r}
-# model due to sense
-mod4 <- lm(OUTCOME ~ ATT + GROUP_Experiment + TAUGHT_Auditory + TAUGHT_Tactile + TAUGHT_Kinesthetic + TAUGHT_Visual, teaching_DID)
-
-mod4 <- lm(OUTCOME ~ ATT + GROUP_Experiment + PREF_N + PREF_T + PREF_K + PREF_V, teaching_DID)
-
-
-summary(mod4)
-```
-
-
-```{r}
-# model due to sense
-mod4 <- glm(DIFF ~ ATT + GROUP_Experiment + TAUGHT_Auditory + TAUGHT_Tactile + TAUGHT_Kinesthetic + TAUGHT_Visual, teaching, family=gaussian(link='identity'))
-
-summary(mod4)
-```
+We see there is no difference between the groups in the beginning. There is a difference between the times (post and pre). There is a treatment effect (interaction  term). ATT higher better score. Session 3 seems to be better taught. It could be that visual preference has a negative effect. 
 
 # Stat stuff
 
