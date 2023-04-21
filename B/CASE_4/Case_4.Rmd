@@ -21,7 +21,7 @@ rm(list = ls())
 library(knitr) # html tables
 library(gtsummary)
 library(dplyr)
-source(file="RFn_Plot-glmSim.R")
+source(file="RFn_Plot-lmSim.R")
 library(leaps)
 ```
 
@@ -32,10 +32,9 @@ teaching <- readxl::read_excel('Bteaching.xls')
 teaching <- data.frame(teaching)
 teaching$GROUP <- factor(teaching$GROUP, level = c('C', 'E'), labels = c('Control', 'Experiment'))
 teaching$GENDER <- factor(teaching$GENDER, level = c('M', 'F'), labels =  c('Male', 'Female'))
-teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
+# teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
 teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('Auditory', 'No Preference', 'Tactile', 'Kinesthetic', 'Visual')) # get understandable lables
 teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
-teaching$DIFF <- teaching$POST - teaching$PRE
 ```
 
 # Data exploratory
@@ -92,51 +91,82 @@ teaching$ID <- 1:nrow(teaching)
 teaching_DID <- teaching %>% slice(rep(1:n(), each = 2))
 teaching_DID$POST_ind <- rep(c(0,1),nrow(teaching)) 
 teaching_DID$OUTCOME <- ifelse(teaching_DID$POST_ind == 1, teaching_DID$POST, teaching_DID$PRE)
-teaching_DID <- subset(teaching_DID, select = -c(POST, PRE, DIFF))
-
-mod <- lm(OUTCOME ~ ., teaching_DID)
-summary(mod)
+teaching_DID <- subset(teaching_DID, select = -c(POST, PRE))
 ```
 
-I guess we can assume normality as qqplot in bootstrap.
+
+### DID without covariates
+
+```{r}
+DID <- lm(OUTCOME ~ POST_ind + GROUP_Experiment + GROUP_Experiment*POST_ind, teaching_DID)
+summary(DID)
+plot(DID)
+plot.glmSim(DID)
+```
+
+There is a treatment effect but no difference in the beginning between the groups. 
+
+### DID with covariates 
+
+```{r}
+mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2 + SESSION_S3 + SESSION_S4 + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID)
+summary(mod)
+plot(mod)
+plot.lmSim(mod)
+```
+
+#### Selection of variables
 
 ```{r}
 library(regclass)
-sort(VIF(mod))
+sort(VIF(mod), decreasing = TRUE)
 ```
 
 Shows which variables have higher importance but we don't 
 
-# Selection of variables
-
 [selections](https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html) [more selections and lasso regression](https://rpubs.com/fractalbass/601525)
 
-## forward
+##### forward
 
 ```{r}
 mod_min <- lm(OUTCOME ~ 1, teaching_DID)
-step(mod_min, direction='forward', scope=formula(lm(OUTCOME ~ ., data = teaching_DID)))
-mod2 <- lm(formula = OUTCOME ~ POST_ind + ATT + SESSION_S3 + PREF_Visual, 
-    data = teaching_DID)
-summary(mod2)
-plot(mod2)
-plot.glmSim(mod2)
+s <- step(mod_min, direction='forward', scope=formula(lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2 + SESSION_S3 + SESSION_S4 + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID)))
+s$call
 ```
 
-## backward
+##### backward
 
 ```{r}
 s <- step(mod, direction = 'backward')
 s
-mod3 <- lm(OUTCOME ~ ATT + SESSION_S3 + PREF_Visual + POST_ind, data=teaching_DID)
-summary(mod3)
-plot(mod3)
-plot.glmSim(mod3)
+s$call
 ```
 
 Selects the best model backwards which makes some variables significant.
 
-## regsubsets
+##### Combination backward and forward
+
+```{r}
+s <- step(mod)
+s
+s$call
+```
+
+##### Model
+
+AS forward, backward and combined variable seleciton give the same model we fit it. 
+
+```{r}
+mod2 <- lm(formula = OUTCOME ~ POST_ind + ATT + SESSION_S3 + PREF_Visual + GROUP_Experiment*POST_ind,
+    data = teaching_DID)
+summary(mod2)
+plot(mod2)
+plot.lmSim(mod2)
+```
+
+There is a no impact of the experiment per se
+
+### regsubsets
 
 ```{r}
 models <- leaps::regsubsets(OUTCOME~., data = teaching_DID, nvmax = 20,
@@ -148,17 +178,14 @@ mod45 <- lm(OUTCOME ~ ATT + SESSION_S2 + SESSION_S3 + `PREF_No Preference` + PRE
 summary(mod45)
 ```
 
-No models fitted as it doesn't make sense
 
-```{r}
-s <- step(mod)
-s
-```
-
-
+### random
 ```{r}
 # model due to sense
 mod4 <- lm(OUTCOME ~ ATT + GROUP_Experiment + TAUGHT_Auditory + TAUGHT_Tactile + TAUGHT_Kinesthetic + TAUGHT_Visual, teaching_DID)
+
+mod4 <- lm(OUTCOME ~ ATT + GROUP_Experiment + PREF_N + PREF_T + PREF_K + PREF_V, teaching_DID)
+
 
 summary(mod4)
 ```
@@ -170,6 +197,8 @@ mod4 <- glm(DIFF ~ ATT + GROUP_Experiment + TAUGHT_Auditory + TAUGHT_Tactile + T
 
 summary(mod4)
 ```
+
+# Stat stuff
 
 ```{r include=FALSE}
 library(readxl)
