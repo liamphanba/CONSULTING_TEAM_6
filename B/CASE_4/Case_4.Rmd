@@ -20,6 +20,9 @@ rm(list = ls())
 ```{r packages}
 library(knitr) # html tables
 library(gtsummary)
+library(dplyr)
+source(file="RFn_Plot-glmSim.R")
+library(leaps)
 ```
 
 # Data Loading
@@ -29,8 +32,10 @@ teaching <- readxl::read_excel('Bteaching.xls')
 teaching <- data.frame(teaching)
 teaching$GROUP <- factor(teaching$GROUP, level = c('C', 'E'), labels = c('Control', 'Experiment'))
 teaching$GENDER <- factor(teaching$GENDER, level = c('M', 'F'), labels =  c('Male', 'Female'))
-teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('A', 'N', 'T', 'K', 'V')) # get understandable lables
+teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
+teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('Auditory', 'No Preference', 'Tactile', 'Kinesthetic', 'Visual')) # get understandable lables
 teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+teaching$DIFF <- teaching$POST - teaching$PRE
 ```
 
 # Data exploratory
@@ -40,86 +45,82 @@ kable(summary(teaching))
 ```
 
 ```{r}
-teaching$index = 1:nrow(teaching)
-tsibble::tsibble(teaching, index = index)
-
-table1 <- tbl_summary(
-  teaching,
-  by = GROUP, # split table by group
-  missing = "no" # don't list missing data separately
-) |> 
-  add_n() |>  # add column with total number of non-missing observations
-  add_p() |>  # test for a difference between groups
-  modify_header(label = "**Variable**") |> # update the column header
-  bold_labels() 
-table1
+# teaching$index = 1:nrow(teaching)
+# tsibble::tsibble(teaching, index = index)
+# 
+# table1 <- tbl_summary(
+#   teaching,
+#   by = GROUP, # split table by group
+#   missing = "no" # don't list missing data separately
+# ) |> 
+#   add_n() |>  # add column with total number of non-missing observations
+#   add_p() |>  # test for a difference between groups
+#   modify_header(label = "**Variable**") |> # update the column header
+#   bold_labels() 
+# table1
 ```
 
 ```{r}
-tbl_strata <-
-  teaching |> 
-  tbl_strata(
-    strata = GROUP,
-    .tbl_fun =
-      ~ .x |>
-        tbl_summary(by = SESSION, missing = "no") |>
-      add_n() |>  # add column with total number of non-missing observations
-      add_p() |>  # test for a difference between groups
-      modify_header(label = "**Variable**") |> # update the column header
-      bold_labels() ,
-    .header = "**{strata}**, N = {n}"
-  )
-tbl_strata
+# tbl_strata <-
+#   teaching |> 
+#   tbl_strata(
+#     strata = GROUP,
+#     .tbl_fun =
+#       ~ .x |>
+#         tbl_summary(by = SESSION, missing = "no") |>
+#       add_n() |>  # add column with total number of non-missing observations
+#       add_p() |>  # test for a difference between groups
+#       modify_header(label = "**Variable**") |> # update the column header
+#       bold_labels() ,
+#     .header = "**{strata}**, N = {n}"
+#   )
+# tbl_strata
 ```
 
 ## Dummy encoding
 
 ```{r}
 library(fastDummies)
-teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF', 'GENDER', 'SLEVEL'), remove_selected_columns = TRUE, remove_first_dummy = TRUE)
+teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF', 'GENDER', 'SLEVEL', 'TAUGHT'), remove_selected_columns = TRUE, remove_first_dummy = TRUE)
 ```
 
+
+## DID
+
 ```{r}
-library(dplyr)
-teaching$DIFF <- teaching$POST - teaching$PRE
-mod <- lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST)))
+teaching$ID <- 1:nrow(teaching)
+teaching_DID <- teaching %>% slice(rep(1:n(), each = 2))
+teaching_DID$POST_ind <- rep(c(0,1),nrow(teaching)) 
+teaching_DID$OUTCOME <- ifelse(teaching_DID$POST_ind == 1, teaching_DID$POST, teaching_DID$PRE)
+teaching_DID <- subset(teaching_DID, select = -c(POST, PRE, DIFF))
+
+mod <- lm(OUTCOME ~ ., teaching_DID)
 summary(mod)
-plot(mod)
-
-
-source(file="RFn_Plot-lmSim.R")
-plot.lmSim(mod)
 ```
 
 I guess we can assume normality as qqplot in bootstrap.
 
 ```{r}
 library(regclass)
-VIF(mod)
+sort(VIF(mod))
 ```
 
-Shows which variables have higher importance
+Shows which variables have higher importance but we don't 
 
 # Selection of variables
 
 [selections](https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html) [more selections and lasso regression](https://rpubs.com/fractalbass/601525)
 
-## regsubsets
-
-```{r}
-library(leaps)
-models <- regsubsets(DIFF~., data = subset(teaching, select = -c(PRE, POST)), nvmax = 10,
-                     method = "seqrep")
-summary(models)
-
-# http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/155-best-subsets-regression-essentials-in-r/
-```
-
 ## forward
 
 ```{r}
-mod4 <- lm(DIFF ~ 1, subset(teaching, select = -c(PRE, POST)))
-step(mod4, direction='forward', scope=formula(lm(DIFF ~ ., data = subset(teaching, select = -c(PRE, POST)))))
+mod_min <- lm(OUTCOME ~ 1, teaching_DID)
+step(mod_min, direction='forward', scope=formula(lm(OUTCOME ~ ., data = teaching_DID)))
+mod2 <- lm(formula = OUTCOME ~ POST_ind + ATT + SESSION_S3 + PREF_Visual, 
+    data = teaching_DID)
+summary(mod2)
+plot(mod2)
+plot.glmSim(mod2)
 ```
 
 ## backward
@@ -127,21 +128,47 @@ step(mod4, direction='forward', scope=formula(lm(DIFF ~ ., data = subset(teachin
 ```{r}
 s <- step(mod, direction = 'backward')
 s
-mod2 <- lm(DIFF ~ ATT + GROUP_Experiment + SESSION_S2 + PREF_N + PREF_K + PREF_V, subset(teaching, select = -c(PRE, POST)))
-
-summary(mod2)
+mod3 <- lm(OUTCOME ~ ATT + SESSION_S3 + PREF_Visual + POST_ind, data=teaching_DID)
+summary(mod3)
+plot(mod3)
+plot.glmSim(mod3)
 ```
 
 Selects the best model backwards which makes some variables significant.
 
-Now a model which would make sense
+## regsubsets
+
+```{r}
+models <- leaps::regsubsets(OUTCOME~., data = teaching_DID, nvmax = 20,
+                     method = "seqrep")
+s <- summary(models)
+
+s$which[which.max(s$adjr2),]
+mod45 <- lm(OUTCOME ~ ATT + SESSION_S2 + SESSION_S3 + `PREF_No Preference` + PREF_Visual + TAUGHT_Tactile + TAUGHT_Visual + POST_ind, teaching_DID)
+summary(mod45)
+```
+
+No models fitted as it doesn't make sense
+
+```{r}
+s <- step(mod)
+s
+```
+
 
 ```{r}
 # model due to sense
-mod3 <- lm(DIFF ~ ATT + GROUP_Experiment + PREF_N + PREF_K + 
-    PREF_V + PREF_T, subset(teaching, select = -c(PRE, POST)))
+mod4 <- lm(OUTCOME ~ ATT + GROUP_Experiment + TAUGHT_Auditory + TAUGHT_Tactile + TAUGHT_Kinesthetic + TAUGHT_Visual, teaching_DID)
 
-summary(mod3)
+summary(mod4)
+```
+
+
+```{r}
+# model due to sense
+mod4 <- glm(DIFF ~ ATT + GROUP_Experiment + TAUGHT_Auditory + TAUGHT_Tactile + TAUGHT_Kinesthetic + TAUGHT_Visual, teaching, family=gaussian(link='identity'))
+
+summary(mod4)
 ```
 
 ```{r include=FALSE}
