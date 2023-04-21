@@ -176,6 +176,47 @@ plot.lmSim(mod2)
 
 We see there is no difference between the groups in the beginning. There is a difference between the times (post and pre). There is a treatment effect (interaction  term). ATT higher better score. Session 3 seems to be better taught. It could be that visual preference has a negative effect. 
 
+## DID with covariates (8 sessions)
+
+```{r}
+teaching$SESSION <- paste0(as.character(teaching$SESSION), '_', as.character(teaching$GROUP))
+teaching$ID <- 1:nrow(teaching)
+teaching_DID <- teaching %>% slice(rep(1:n(), each = 2))
+teaching_DID$POST_ind <- rep(c(0,1),nrow(teaching)) 
+teaching_DID$OUTCOME <- ifelse(teaching_DID$POST_ind == 1, teaching_DID$POST, teaching_DID$PRE)
+teaching_DID <- subset(teaching_DID, select = -c(POST, PRE))
+```
+
+### Base model
+
+```{r}
+mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S1_Experiment + SESSION_S2_Experiment + SESSION_S3_Experiment + SESSION_S4_Experiment + SESSION_S2_Control + SESSION_S3_Control + SESSION_S4_Control + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID)
+summary(mod)
+plot(mod)
+plot.lmSim(mod)
+```
+
+### selection
+
+```{r}
+s <- step(mod)
+s$call
+```
+
+### tuned model
+
+```{r}
+mod23 <- lm(formula = OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2_Control + 
+    PREF_Visual + POST_ind + GROUP_Experiment:POST_ind, data = teaching_DID)
+summary(mod23)
+plot(mod23)
+plot.lmSim(mod23)
+```
+
+When we split session in 8 instead of 4
+
+Maybe we should just drop session completely.
+
 # Stat stuff
 
 ```{r include=FALSE}
