@@ -85,7 +85,7 @@ teaching <- dummy_columns(teaching, select_columns = c('GROUP', 'SESSION', 'PREF
 ```
 
 
-# DID
+# DID (Liam, Michael & Tania)
 
 ```{r}
 teaching$ID <- 1:nrow(teaching)
@@ -94,7 +94,6 @@ teaching_DID$POST_ind <- rep(c(0,1),nrow(teaching))
 teaching_DID$OUTCOME <- ifelse(teaching_DID$POST_ind == 1, teaching_DID$POST, teaching_DID$PRE)
 teaching_DID <- subset(teaching_DID, select = -c(POST, PRE))
 ```
-
 
 ## DID without covariates
 
@@ -176,7 +175,9 @@ plot.lmSim(mod2)
 
 We see there is no difference between the groups in the beginning. There is a difference between the times (post and pre). There is a treatment effect (interaction  term). ATT higher better score. Session 3 seems to be better taught. It could be that visual preference has a negative effect. 
 
-# Stat stuff
+
+
+# Williams, Dakota, Ilyana 
 
 ```{r include=FALSE}
 library(readxl)
