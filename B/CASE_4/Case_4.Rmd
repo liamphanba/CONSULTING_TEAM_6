@@ -29,13 +29,23 @@ library(leaps)
 # Data Loading
 
 ```{r data loading}
+
+# LOAD DATA
 teaching <- readxl::read_excel('Bteaching.xls')
+
+# CONVERT DATAFRAME
 teaching <- data.frame(teaching)
+
+# CHANGING LABELS AND FACTORS
 teaching$GROUP <- factor(teaching$GROUP, level = c('C', 'E'), labels = c('Control', 'Experiment'))
 teaching$GENDER <- factor(teaching$GENDER, level = c('M', 'F'), labels =  c('Male', 'Female'))
 # Don't need this teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
 teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('Auditory', 'No Preference', 'Tactile', 'Kinesthetic', 'Visual')) # get understandable lables
 teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+
+# DUPLICATE DATAFRAMES
+teaching8 <- teaching
+
 ```
 
 # Data exploratory
@@ -179,18 +189,22 @@ We see there is no difference between the groups in the beginning. There is a di
 ## DID with covariates (8 sessions)
 
 ```{r}
-teaching$SESSION <- paste0(as.character(teaching$SESSION), '_', as.character(teaching$GROUP))
-teaching$ID <- 1:nrow(teaching)
-teaching_DID <- teaching %>% slice(rep(1:n(), each = 2))
-teaching_DID$POST_ind <- rep(c(0,1),nrow(teaching)) 
-teaching_DID$OUTCOME <- ifelse(teaching_DID$POST_ind == 1, teaching_DID$POST, teaching_DID$PRE)
-teaching_DID <- subset(teaching_DID, select = -c(POST, PRE))
+
+teaching8$SESSION <- paste0(as.character(teaching8$SESSION), '_', as.character(teaching8$GROUP))
+teaching8$ID <- 1:nrow(teaching8)
+teaching8_DID <- teaching8 %>% slice(rep(1:n(), each = 2))
+teaching8_DID$POST_ind <- rep(c(0,1),nrow(teaching8)) 
+teaching8_DID$OUTCOME <- ifelse(teaching8_DID$POST_ind == 1, teaching8_DID$POST, teaching8_DID$PRE)
+teaching8_DID <- subset(teaching8_DID, select = -c(POST, PRE))
+
+teaching8_DID <- dummy_columns(teaching8_DID, select_columns = c('GROUP', 'SESSION', 'PREF', 'GENDER', 'SLEVEL'), remove_selected_columns = TRUE, remove_first_dummy = TRUE)
+
 ```
 
 ### Base model
 
 ```{r}
-mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S1_Experiment + SESSION_S2_Experiment + SESSION_S3_Experiment + SESSION_S4_Experiment + SESSION_S2_Control + SESSION_S3_Control + SESSION_S4_Control + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID)
+mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S1_Experiment + SESSION_S2_Experiment + SESSION_S3_Experiment + SESSION_S4_Experiment + SESSION_S2_Control + SESSION_S3_Control + SESSION_S4_Control + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching8_DID)
 summary(mod)
 plot(mod)
 plot.lmSim(mod)
@@ -207,7 +221,7 @@ s$call
 
 ```{r}
 mod23 <- lm(formula = OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2_Control + 
-    PREF_Visual + POST_ind + GROUP_Experiment:POST_ind, data = teaching_DID)
+    PREF_Visual + POST_ind + GROUP_Experiment:POST_ind, data = teaching8_DID)
 summary(mod23)
 plot(mod23)
 plot.lmSim(mod23)
