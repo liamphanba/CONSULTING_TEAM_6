@@ -24,6 +24,7 @@ library(gtsummary)
 library(dplyr)
 source(file="RFn_Plot-lmSim.R")
 library(leaps)
+library(jtools)
 ```
 
 # Data Loading
@@ -109,9 +110,11 @@ teaching_DID <- subset(teaching_DID, select = -c(POST, PRE))
 
 ```{r}
 DID <- lm(OUTCOME ~ POST_ind + GROUP_Experiment + GROUP_Experiment*POST_ind, teaching_DID)
-summary(DID)
+summ(DID)
 plot(DID)
 plot.lmSim(DID)
+
+
 ```
 
 There is a treatment effect but no difference in the beginning between the groups. 
@@ -120,7 +123,7 @@ There is a treatment effect but no difference in the beginning between the group
 
 ```{r}
 mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2 + SESSION_S3 + SESSION_S4 + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching_DID)
-summary(mod)
+summ(mod)
 plot(mod)
 plot.lmSim(mod)
 ```
@@ -178,7 +181,7 @@ Based on forward and backward selection as well as the combination  we fit the f
 ```{r}
 mod2 <- lm(formula = lm(formula = OUTCOME ~ ATT + GROUP_Experiment + SESSION_S3 + PREF_Visual + POST_ind + GROUP_Experiment:POST_ind, data = teaching_DID),
     data = teaching_DID)
-summary(mod2)
+summ(mod2)
 plot(mod2)
 plot.lmSim(mod2)
 ```
@@ -205,7 +208,7 @@ teaching8_DID <- dummy_columns(teaching8_DID, select_columns = c('GROUP', 'SESSI
 
 ```{r}
 mod <- lm(OUTCOME ~ ATT + GROUP_Experiment + SESSION_S1_Experiment + SESSION_S2_Experiment + SESSION_S3_Experiment + SESSION_S4_Experiment + SESSION_S2_Control + SESSION_S3_Control + SESSION_S4_Control + `PREF_No Preference` + PREF_Tactile + PREF_Kinesthetic + PREF_Visual + GENDER_Female + SLEVEL_Highschool + ID + POST_ind + GROUP_Experiment * POST_ind, teaching8_DID)
-summary(mod)
+summ(mod)
 plot(mod)
 plot.lmSim(mod)
 ```
@@ -222,7 +225,7 @@ s$call
 ```{r}
 mod23 <- lm(formula = OUTCOME ~ ATT + GROUP_Experiment + SESSION_S2_Control + 
     PREF_Visual + POST_ind + GROUP_Experiment:POST_ind, data = teaching8_DID)
-summary(mod23)
+summ(mod23)
 plot(mod23)
 plot.lmSim(mod23)
 ```
