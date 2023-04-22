@@ -107,7 +107,7 @@ ggplot(teaching) +
 ggplot(teaching) +
  aes(x = GROUP, y = POST) +
  geom_boxplot(fill = "#0D8387") +
- labs(x = "GROUP", y = "Post-Score ", 
+ labs(x = "GROUP", y = "Post-Score (0-100)", 
  title = "Teaching Data", subtitle = "Post-Score Test between Control and Experiment", caption = "©2023 Alpine Insights") +
  theme_minimal()+ xlab("") 
 
@@ -132,7 +132,7 @@ ggplot(teaching) +
  geom_boxplot() +
  scale_fill_manual(values = c(Male = "#0D8387", 
 Female = "#2F4F4E")) +
- labs(y = "Post-Score", title = "Teaching Data", subtitle = "Post-Score According to Preferences and Gender", 
+ labs(y = "Post-Score (0-100)", title = "Teaching Data", subtitle = "Post-Score According to Preferences and Gender", 
  caption = "@2023 Alpine Insights") +
  theme_minimal()+ xlab("") 
 
@@ -149,7 +149,25 @@ ggplot(teaching) +
  geom_boxplot() +
  scale_fill_manual(values = c(Control = "#0D8387", 
 Experiment = "#2F4F4E")) +
- labs(y = "Post-Score", title = "Data Teaching", subtitle = "Post-Score according to Session and Group", 
+ labs(y = "Post-Score (0-100)", title = "Data Teaching", subtitle = "Post-Score according to Session and Group", 
+ caption = "@2023 Alpine Insights") +
+ theme_minimal() +
+ facet_wrap(vars(GROUP)) + theme(legend.position = "none") 
+
+
+```
+
+# **Attitude**
+
+```{r}
+
+
+ggplot(teaching) +
+ aes(x = GENDER, y = ATT, fill = GROUP) +
+ geom_boxplot() +
+ scale_fill_manual(values = c(Control = "#0D8387", 
+Experiment = "#2F4F4E")) +
+ labs(y = "Attitude Score (0-60)", title = "Teaching Data", subtitle = "Attitude Score across Gender and Group", 
  caption = "@2023 Alpine Insights") +
  theme_minimal() +
  facet_wrap(vars(GROUP)) + theme(legend.position = "none") 
