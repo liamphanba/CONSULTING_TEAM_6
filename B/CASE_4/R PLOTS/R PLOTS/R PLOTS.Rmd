@@ -1,0 +1,153 @@
+---
+title: "R PLOTS"
+author: "Liam Phan"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+# LOAD DATA
+teaching <- readxl::read_excel('Bteaching.xls')
+# CONVERT DATAFRAME
+teaching <- data.frame(teaching)
+# CHANGING LABELS AND FACTORS
+teaching$GROUP <- factor(teaching$GROUP, level = c('C', 'E'), labels = c('Control', 'Experiment'))
+teaching$GENDER <- factor(teaching$GENDER, level = c('M', 'F'), labels =  c('Male', 'Female'))
+# Don't need this teaching$TAUGHT <- factor(ifelse(teaching$PREF == 'N' | teaching$GROUP == 'Control', 'TR', teaching$PREF), level = c('TR', 'A', 'T', 'K', 'V'), labels = c('Traditional', 'Auditory', 'Tactile', 'Kinesthetic', 'Visual'))
+teaching$PREF <- factor(teaching$PREF, level = c('A', 'N', 'T', 'K', 'V'), labels = c('Auditory', 'No Preference', 'Tactile', 'Kinesthetic', 'Visual')) # get understandable labels
+teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elementary', 'Highschool'))
+
+
+```
+
+
+# **Gender Counts**
+
+```{r}
+
+ggplot(teaching) +
+ aes(x = GENDER, fill = GENDER) +
+ geom_bar() +
+ scale_fill_manual(values = c(Male = "#0D8387", 
+Female = "#2F4F4E")) +
+ labs(y = "Students", title = "Teaching Data", subtitle = "Gender ", caption = "©2023 Alpine Insights") +
+ theme_minimal() + theme(legend.position = "none")     
+
+```
+
+# **Education Level Count**
+
+```{r}
+
+ggplot(teaching) +
+ aes(x = SLEVEL, fill = SLEVEL) +
+ geom_bar() +
+ scale_fill_manual(values = c(Elementary = "#0D8387", 
+Highschool = "#2F4F4E")) +
+ labs(y = "Student", title = "Teaching Data", subtitle = "Education Level ", caption = "©2023 Alpine Insights") +
+ theme_minimal() + theme(legend.position = "none")  + xlab("Education Level")
+
+```
+
+# **Teaching Preferences according to Gender**
+
+```{r}
+
+ggplot(teaching) +
+ aes(x = PREF, fill = GENDER) +
+ geom_bar() +
+ scale_fill_manual(values = c(Male = "#0D8387", 
+Female = "#2F4F4E")) +
+ labs(x = "TEACHING PREFERENCES", y = "Student", title = "Teaching Data", subtitle = "Teaching Preferences according to Gender",
+ caption = "@2023 Alpine Insights", fill = "GENDER") +
+ theme_minimal()+ xlab("") 
+
+```
+
+# **Control and Experiment Check**
+
+```{r}
+
+ggplot(teaching) +
+ aes(x = GROUP, fill = GENDER) +
+ geom_bar() +
+ scale_fill_manual(values = c(Male = "#0D8387", 
+Female = "#2F4F4E")) +
+ labs(y = "Student", title = "Teaching Data", subtitle = "Control and Experiment Check", 
+ caption = "©2023 Alpine Insights") +
+ theme_minimal() +
+ facet_wrap(vars(SLEVEL))+ xlab("") 
+
+```
+
+# Pre and Post Score between Control and Experiment
+
+```{r}
+
+ggplot(teaching) +
+ aes(x = GROUP, y = PRE) +
+ geom_boxplot(fill = "#2F4F4E") +
+ labs(x = "GROUP", y = "Pre-Score ", 
+ title = "Teaching Data", subtitle = "Pre-Score Test between Control and Experiment", caption = "©2023 Alpine Insights") +
+ theme_minimal() + xlab("") 
+
+ggplot(teaching) +
+ aes(x = GROUP, y = POST) +
+ geom_boxplot(fill = "#0D8387") +
+ labs(x = "GROUP", y = "Post-Score ", 
+ title = "Teaching Data", subtitle = "Post-Score Test between Control and Experiment", caption = "©2023 Alpine Insights") +
+ theme_minimal()+ xlab("") 
+
+
+```
+
+# **Pre-Score and Post-Score according to Preferences and Gender
+
+```{r}
+
+ggplot(teaching) +
+ aes(x = PREF, y = PRE, fill = GENDER) +
+ geom_boxplot() +
+ scale_fill_manual(values = c(Male = "#0D8387", 
+Female = "#2F4F4E")) +
+ labs(y = "Pre-Score", title = "Teaching Data", subtitle = "Pre-Score According to Preferences and Gender", 
+ caption = "@2023 Alpine Insights") +
+ theme_minimal()+ xlab("") 
+
+ggplot(teaching) +
+ aes(x = PREF, y = POST, fill = GENDER) +
+ geom_boxplot() +
+ scale_fill_manual(values = c(Male = "#0D8387", 
+Female = "#2F4F4E")) +
+ labs(y = "Post-Score", title = "Teaching Data", subtitle = "Post-Score According to Preferences and Gender", 
+ caption = "@2023 Alpine Insights") +
+ theme_minimal()+ xlab("") 
+
+```
+
+
+# **Post-Score according to Session and Group
+
+```{r}
+
+
+ggplot(teaching) +
+ aes(x = SESSION, y = POST, fill = GROUP) +
+ geom_boxplot() +
+ scale_fill_manual(values = c(Control = "#0D8387", 
+Experiment = "#2F4F4E")) +
+ labs(y = "Post-Score", title = "Data Teaching", subtitle = "Post-Score according to Session and Group", 
+ caption = "@2023 Alpine Insights") +
+ theme_minimal() +
+ facet_wrap(vars(GROUP)) + theme(legend.position = "none") 
+
+
+```
