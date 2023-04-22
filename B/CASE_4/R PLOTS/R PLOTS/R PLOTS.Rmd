@@ -1,14 +1,19 @@
 ---
-title: "R PLOTS"
-author: "Liam Phan"
-date: "`r Sys.Date()`"
-output: html_document
+title: "CASE 4 - Teaching Visualization"
+author: Liam Phan
+date: "2023-03-10"
+output: 
+  rmdformats::downcute:
+    code_folding: hide
+    toc_level: 6
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALSE,options(scipen=999))
+rm(list = ls())
+
+```
 
 ```{r}
 library(tidyverse)
@@ -88,7 +93,7 @@ Female = "#2F4F4E")) +
 
 ```
 
-# Pre and Post Score between Control and Experiment
+# **Pre and Post Score between Control and Experiment**
 
 ```{r}
 
@@ -109,7 +114,7 @@ ggplot(teaching) +
 
 ```
 
-# **Pre-Score and Post-Score according to Preferences and Gender
+# **Pre-Score and Post-Score according to Preferences and Gender**
 
 ```{r}
 
@@ -134,7 +139,7 @@ Female = "#2F4F4E")) +
 ```
 
 
-# **Post-Score according to Session and Group
+# **Post-Score according to Session and Group**
 
 ```{r}
 
