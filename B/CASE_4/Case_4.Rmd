@@ -175,7 +175,7 @@ plot.lmSim(mod2)
 
 We see there is no difference between the groups in the beginning. There is a difference between the times (post and pre). There is a treatment effect (interaction  term). ATT higher better score. Session 3 seems to be better taught. It could be that visual preference has a negative effect. 
 
-<<<<<<< HEAD
+
 ## DID with covariates (8 sessions)
 
 ```{r}
@@ -217,12 +217,8 @@ When we split session in 8 instead of 4
 
 Maybe we should just drop session completely.
 
-# Stat stuff
-=======
-
 
 # Williams, Dakota, Ilyana 
->>>>>>> 3f51e32cdf0f4d45395db3dcbc87f58b8a6f9aed
 
 ```{r include=FALSE}
 library(readxl)
@@ -439,8 +435,4 @@ experiment_means <- aggregate(experiment_data$POST, by = list(experiment_data$MA
 
 ```
 
-# References {.unnumbered}
-
-[gtsummary](https://www.danieldsjoberg.com/gtsummary/)
-
-[Stratified gtsummary tables](https://www.danieldsjoberg.com/gtsummary/reference/tbl_strata.html)
+# References
