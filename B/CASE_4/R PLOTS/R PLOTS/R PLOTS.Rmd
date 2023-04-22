@@ -33,7 +33,6 @@ teaching$SLEVEL <- factor(teaching$SLEVEL, level = c('E', 'H'), labels = c('Elem
 
 ```
 
-
 # **Gender Counts**
 
 ```{r}
@@ -100,7 +99,7 @@ Female = "#2F4F4E")) +
 ggplot(teaching) +
  aes(x = GROUP, y = PRE) +
  geom_boxplot(fill = "#2F4F4E") +
- labs(x = "GROUP", y = "Pre-Score ", 
+ labs(x = "GROUP", y = "Pre-Score (0-100)", 
  title = "Teaching Data", subtitle = "Pre-Score Test between Control and Experiment", caption = "©2023 Alpine Insights") +
  theme_minimal() + xlab("") 
 
@@ -123,7 +122,7 @@ ggplot(teaching) +
  geom_boxplot() +
  scale_fill_manual(values = c(Male = "#0D8387", 
 Female = "#2F4F4E")) +
- labs(y = "Pre-Score", title = "Teaching Data", subtitle = "Pre-Score According to Preferences and Gender", 
+ labs(y = "Pre-Score (0-100)", title = "Teaching Data", subtitle = "Pre-Score According to Preferences and Gender", 
  caption = "@2023 Alpine Insights") +
  theme_minimal()+ xlab("") 
 
@@ -137,7 +136,6 @@ Female = "#2F4F4E")) +
  theme_minimal()+ xlab("") 
 
 ```
-
 
 # **Post-Score according to Session and Group**
 
