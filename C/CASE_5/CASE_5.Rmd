@@ -233,7 +233,6 @@ CM_Function(LDA_Confusion_Matrix_testing)
 ```{r}
 library(randomForest)
 library(caret)
-
 set.seed(1)
 
 # Set up cross-validation
