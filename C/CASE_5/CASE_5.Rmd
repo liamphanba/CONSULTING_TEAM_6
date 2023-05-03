@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE,comment = FALSE, error = FALS
 rm(list = ls())
 ```
 
+# Packages
+
 ```{r packages}
 library(DT)
 library(summarytools)
@@ -25,6 +27,9 @@ library(psych)
 library(MASS)
 # library(ggord)
 library(devtools)
+library(ggplot2)
+library(ggthemes)
+library(GGally)
 
 CM_Function <- function(cm) {
 
@@ -151,7 +156,7 @@ ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.le
 
 Now we have non-correlated data
 
-## SMOTE (Oversampling)
+## Sampling Methods
 
 ```{r}
 
@@ -178,16 +183,32 @@ table(df_BOTH$churn)
 # ROSE
 df_ROSE <- ROSE(churn ~ ., data = df, seed = 1)$data
 
-table(df$churn)
-table(df_ROSE$churn)
 
-# CHOOSING WHICH RESAMPLING METHOD
-print(summarytools::dfSummary(df), method = 'render')
-print(summarytools::dfSummary(df_ROSE), method = 'render')
-print(summarytools::dfSummary(df_BOTH), method = 'render')
+```
 
-df <- df_ROSE
+## Sampling Visualization
 
+```{r}
+
+theme_set(theme_minimal())
+
+ggpairs(
+  data = df,
+  columns = c(1:9,11:14),
+  mapping = aes(col = churn, alpha = .9)
+) +
+  scale_fill_colorblind() +
+  scale_color_colorblind() +
+  labs(title = "Machine Learning Project")
+
+ggpairs(
+  data = df_ROSE,
+  columns = c(1:9,11:14),
+  mapping = aes(col = churn, alpha = .9)
+) +
+  scale_fill_colorblind() +
+  scale_color_colorblind() +
+  labs(title = "Machine Learning Project")
 
 
 ```
@@ -197,6 +218,9 @@ df <- df_ROSE
 ```{r standardize}
 
 df <- df %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+df_ROSE <- df_ROSE %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+df_OVER <- df_OVER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+df_UNDER <- df_UNDER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
 
 ```
 
@@ -207,7 +231,7 @@ df <- df %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
 
 ```{r predict}
 
-mod <- glm(churn ~., data = df, family = binomial(link='logit'))
+mod <- glm(churn ~., data = df_UNDER, family = binomial(link='logit'))
 summary(mod)
 
 churn_predicted <- factor(ifelse(predict(mod, df[,-c(10)], type = 'response') < 0.5, 'no', 'yes'))
@@ -232,26 +256,13 @@ https://cran.r-project.org/web/packages/imbalance/vignettes/imbalance.pdf
 
 ```{r LDA}
 
-set.seed(1)
-
-# Row Sample
-ind <- sample(2, nrow(df),
-              replace = TRUE,
-              prob = c(0.6, 0.4))
-
-# Training 60%
-training <- df[ind==1,]
-
-# Testing 40%
-testing <- df[ind==2,]
-
 # LDA Model Fit on Training
-LDA_training <- lda(churn~., training)
+LDA_training <- lda(churn~., df_UNDER)
 LDA_training
 
 # Density Plot for Overlapping 
-p <- predict(LDA_training, training)
-ldahist(data = p$x[,1], g = training$churn, col = "#0D8387")
+p <- predict(LDA_training, df)
+ldahist(data = p$x[,1], g = df$churn, col = "#0D8387")
 
 ```
 
@@ -260,24 +271,17 @@ ldahist(data = p$x[,1], g = training$churn, col = "#0D8387")
 ```{r}
 
 # Training 60%
-LDA_predictions_training <- predict(LDA_training, training)$class
+LDA_predictions_training <- predict(LDA_training, df)$class
 
-LDA_Confusion_Matrix_training <- confusionMatrix(data = LDA_predictions_training, reference = training$churn)
+LDA_Confusion_Matrix_training <- confusionMatrix(data = LDA_predictions_training, reference = df$churn, positive='yes')
 
 CM_Function(LDA_Confusion_Matrix_training)
-
-# Testing 40%
-LDA_predictions_testing <- predict(LDA_training, testing)$class
-
-LDA_Confusion_Matrix_testing <- confusionMatrix(data = LDA_predictions_testing, reference = testing$churn,positive = 'yes')
-
-CM_Function(LDA_Confusion_Matrix_testing)
 
 ```
 
 ## Random Forest 
 
-Best with ROSE and BOTH sampling
+Best with ROSE sampling
 
 ```{r}
 library(randomForest)
@@ -288,7 +292,7 @@ set.seed(1)
 control <- trainControl(method = "cv", number = 5, savePredictions = "final", classProbs = TRUE)
 
 # Train the Random Forest model using cross-validation
-model_cv <- train(churn ~ ., data = df, method = "rf", trControl = control, ntree = 500, importance = TRUE)
+model_cv <- train(churn ~ ., data = df_ROSE, method = "rf", trControl = control, ntree = 500, importance = TRUE)
 
 # Model performance (average metrics across folds)
 model_cv$results
@@ -298,11 +302,62 @@ confusionMatrix(model_cv$pred$pred, model_cv$pred$obs, positive = 'yes')
 CM_Function(confusionMatrix(model_cv$pred$pred, model_cv$pred$obs, positive = 'yes'))
 
 # Fit the Random Forest model with the optimal mtry value
-RF_optimal <- randomForest(churn ~ ., data = training, mtry = 6, ntree = 500)
+RF_optimal <- randomForest(churn ~ ., data = df_ROSE, mtry = 6, ntree = 500)
 
 # Mean Decrease Gini
 importance <- importance(RF_optimal)
 importance
+
+
+```
+
+
+## Random Forest V2
+
+```{r}
+
+# ROSE DATA
+
+rf <- randomForest(churn~., data=df_UNDER, proximity=TRUE)
+
+Predictions_OVER <- predict(rf, df_UNDER[,-10])
+
+CM_OVER <- confusionMatrix(Predictions_OVER, df_UNDER$churn, positive = 'yes')
+
+CM_Function(CM_OVER)
+
+# ORIGINAL DATA
+
+Predictions_DATA <- predict(rf, df[,-10])
+
+CM_DATA <- confusionMatrix(Predictions_DATA, df$churn, positive = 'yes')
+
+CM_Function(CM_DATA)
+
+```
+
+
+## Decision Trees
+
+```{r}
+
+tree <- rpart(churn ~., data = df)
+
+rpart.plot(tree)
+
+printcp(tree)
+plotcp(tree)
+
+Predictions_DT <- predict(tree, df[,-10])[,2]
+
+Predictions_DT <- ifelse(Predictions_DT > 0.5, "yes","no")
+
+Predictions_DT <- as.factor(Predictions_DT)
+
+CM_DATA <- confusionMatrix(Predictions_DT, df$churn, positive = 'yes')
+
+CM_Function(CM_DATA)
+
 ```
 
 ## Neural Net
@@ -310,7 +365,8 @@ importance
 ```{r neural}
 
 library(caret)
-nn1 <- train(churn ~ ., data = df, method = "nnet")
+
+nn1 <- train(churn ~ ., data = df_UNDER, method = "nnet")
 
 nn1.pre <- predict(nn1, df[,-c(10)])
 
@@ -326,9 +382,15 @@ CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
 
 library(e1071)
 
-classifierR = svm(formula = Purchased ~ .,
-                 data = training_set,
+classifierR = svm(formula = churn ~ .,
+                 data = df_UNDER,
                  type = 'C-classification', # this is because we want to make a regression classification
                  kernel = 'radial')
+
+svm_1 <- predict(classifierR, df[,-c(10)])
+
+confusionMatrix(svm_1, df$churn, positive = 'yes')
+
+CM_Function(confusionMatrix(svm_1, df$churn, positive = 'yes'))
 
 ```
