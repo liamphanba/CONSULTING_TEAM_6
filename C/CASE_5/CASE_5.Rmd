@@ -23,7 +23,7 @@ library(ggcorrplot)
 library(klaR)
 library(psych)
 library(MASS)
-library(ggord)
+# library(ggord)
 library(devtools)
 
 CM_Function <- function(cm) {
@@ -181,6 +181,12 @@ CM_Function(LR_Confusion_Matrix_training)
 
 Log regression doesn't work. Changing the decision boundary also doesn't help. --> maybe we actually need to resample
 
+https://www.r-bloggers.com/2021/05/class-imbalance-handling-imbalanced-data-in-r/
+https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
+https://datascientistdiary.com/index.php/2021/09/02/how-to-handle-imbalanced-data-example-in-r/
+https://cran.r-project.org/web/packages/imbalance/vignettes/imbalance.pdf
+
+
 ## LDA 
 
 ```{r LDA}
@@ -254,4 +260,17 @@ RF_optimal <- randomForest(churn ~ ., data = training, mtry = 6, ntree = 500)
 # Mean Decrease Gini
 importance <- importance(RF_optimal)
 importance
+```
+
+## Neural net
+
+```{r neural}
+library(caret)
+nn1 <- train(churn ~ ., data = df, method = "nnet")
+
+nn1.pre <- predict(nn1, df[,-c(10)])
+
+confusionMatrix(nn1.pre, df$churn, positive = 'yes')
+CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
+
 ```
