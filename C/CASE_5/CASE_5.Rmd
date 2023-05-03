@@ -182,9 +182,12 @@ table(df$churn)
 table(df_ROSE$churn)
 
 # CHOOSING WHICH RESAMPLING METHOD
-df <- df_OVER
-df <- df_UNDER
-df <- df_BOTH
+print(summarytools::dfSummary(df), method = 'render')
+print(summarytools::dfSummary(df_ROSE), method = 'render')
+print(summarytools::dfSummary(df_BOTH), method = 'render')
+
+df <- df_ROSE
+
 
 
 ```
@@ -272,7 +275,9 @@ CM_Function(LDA_Confusion_Matrix_testing)
 
 ```
 
-## Random Forest
+## Random Forest 
+
+Best with ROSE and BOTH sampling
 
 ```{r}
 library(randomForest)
@@ -300,9 +305,10 @@ importance <- importance(RF_optimal)
 importance
 ```
 
-## Neural net
+## Neural Net
 
 ```{r neural}
+
 library(caret)
 nn1 <- train(churn ~ ., data = df, method = "nnet")
 
@@ -310,5 +316,19 @@ nn1.pre <- predict(nn1, df[,-c(10)])
 
 confusionMatrix(nn1.pre, df$churn, positive = 'yes')
 CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
+
+```
+
+
+## Support Vector Machines
+
+```{r}
+
+library(e1071)
+
+classifierR = svm(formula = Purchased ~ .,
+                 data = training_set,
+                 type = 'C-classification', # this is because we want to make a regression classification
+                 kernel = 'radial')
 
 ```
