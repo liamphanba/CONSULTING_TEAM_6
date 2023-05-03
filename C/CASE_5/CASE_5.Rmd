@@ -151,6 +151,44 @@ ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.le
 
 Now we have non-correlated data
 
+## SMOTE (Oversampling)
+
+```{r}
+
+library(ROSE)
+
+# OVER
+df_OVER <- ovun.sample(churn~., data = df, method = "over")$data
+
+table(df$churn)
+table(df_OVER$churn)
+
+# UNDER
+df_UNDER <- ovun.sample(churn~., data = df, method = "under")$data
+
+table(df$churn)
+table(df_UNDER$churn)
+
+# BOTH
+df_BOTH <- ovun.sample(churn~., data = df, method = "both")$data
+
+table(df$churn)
+table(df_BOTH$churn)
+
+# ROSE
+df_ROSE <- ROSE(churn ~ ., data = df, seed = 1)$data
+
+table(df$churn)
+table(df_ROSE$churn)
+
+# CHOOSING WHICH RESAMPLING METHOD
+df <- df_OVER
+df <- df_UNDER
+df <- df_BOTH
+
+
+```
+
 ## Scale
 
 ```{r standardize}
