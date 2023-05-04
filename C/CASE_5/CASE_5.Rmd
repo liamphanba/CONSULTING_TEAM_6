@@ -16,6 +16,8 @@ rm(list = ls())
 
 ```{r packages}
 library(DT)
+library(adabag)
+library(rpart.plot)
 library(pROC)
 library(summarytools)
 library(corrplot)
@@ -290,8 +292,8 @@ As we need to test the models we need to split the sampled data.
 set.seed(1)
 data <- df_OVER # choose which data to use df_ROSE / df_BOTH / df_UNDER / df_OVER / df
 inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
-dftrain <- df[inds$train,]
-dftest <- df[inds$test,]
+dftrain <- data[inds$train,]
+dftest <- data[inds$test,]
 ```
 
 ## Standardizing
@@ -305,6 +307,154 @@ dftest <- predict(norm.value, dftest)
 ```
 
 # Predicting Models
+
+## neural net
+
+```{r}
+dftrain <- dftrain |> 
+  mutate_if(is.factor, as.character) |> 
+  mutate_if(is.character, as.numeric)
+
+library(neuralnet)
+mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
+
+predicted.neural <- predict(mod.neural, dftest[,-c(10)])
+
+confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.neural)
+
+roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
+plot(roc_score.neural ,main ="ROC curve")
+
+```
+
+## Boosting
+
+```{r bagging}
+set.seed(123)
+
+# train bagged model
+mod.boost <- boosting(churn ~., data=dftrain)
+
+predicted.boost <- factor(predict(mod.boost, dftest, type="class")$class)
+
+confmat.boost <- confusionMatrix(data=predicted.boost, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.boost)
+
+roc_score.boost =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.boost, ordered=TRUE))
+plot(roc_score.boost ,main ="ROC curve")
+
+```
+## Ctree
+
+```{r}
+tree_full <- rpart(churn ~ ., 
+              data = dftrain, 
+              method = "class",  # "class" because Y is a binary factor
+              minbucket = 1,
+              cp = 0.00001) 
+
+# Plot tree
+rpart.plot(tree_full, yesno = TRUE, digits =-6)
+
+min_xerr<- which.min(tree_full$cptable[,"xerror"]) # select minimum cross-validation error
+cp_bp <- tree_full$cptable[min_xerr,"CP"]  # find the corresponding CP value, to get the "best pruned " tree
+
+
+mod.pruned_tree<- prune(tree_full, cp = cp_bp) # re-compute the tree with the selected Cp
+rpart.plot(mod.pruned_tree, yesno = TRUE, digits =-3)
+
+predicted.pruned_tree <- predict(mod.pruned_tree, dftest[,-c(10)], type = "class")
+
+confmat.prunned_tree <- confusionMatrix(data=predicted.pruned_tree, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.prunned_tree)
+
+roc_score.prunned_tree =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.pruned_tree, ordered=TRUE))
+plot(roc_score.prunned_tree ,main ="ROC curve")
+```
+
+## Bagging 
+
+```{r bagging}
+set.seed(123)
+library(ipred)
+
+# train bagged model
+ames_bag1 <- bagging(
+  formula = churn ~ .,
+  data = dftrain, 
+  nbagg = 100,  
+  coob = TRUE,
+  control = rpart.control(minsplit = 2, cp = 0)
+  )
+
+ames_bag1
+
+predicted <- factor(ifelse(predict(ames_bag1, dftest[,-c(10)], type = 'prob')[,2] >= 0.5, 1, 0))
+                    
+CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = '1'))
+
+roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
+plot(roc_score ,main ="ROC curve")
+
+```
+
+
+## knn
+
+```{r}
+
+set.seed(1)
+
+df <- data.frame(k = seq(1, 30, 1), accuracy = rep(0, 30), sensitivity = rep(0, 30))
+
+# iterating over different ks
+for(i in 1:30){
+  # nearest neighbor
+  KNN1 <- knn3(y = dftrain$churn, x = dftrain[,-c(10)], k = i)
+
+  # predictions response 
+  KNN1.pred.valid.resp <- predict(KNN1, dftest[,-c(10)], type = "class")
+  
+  # predictions prob 
+  KNN1.pred.valid.prob <- predict(KNN1, dftest[,-c(10)], type = "prob")[,2]
+  
+  # Confusionmatrix
+  df$sensitivity[i] <- confusionMatrix(KNN1.pred.valid.resp, dftest$churn, positive = "1")$byClass[1]
+  df$accuracy[i] <- confusionMatrix(KNN1.pred.valid.resp, dftest$churn, positive = "1")$overall[1]
+
+}
+
+# plot the k's
+ggplot(df, aes(x=k)) + 
+  geom_line(aes(y = sensitivity, colour = "Sensitivity")) + 
+  geom_line(aes(y = accuracy, colour = "Accuracy")) + 
+  labs(x = "Number of k nearest neighbours", 
+       y = "Accuracy / Sensitivity", title = "Accuracy / Sensitivity regarding k") +
+  theme_minimal() + 
+  scale_y_continuous(name = "Sensitivity / Accuracy", limits = c(0.7, 1)) +
+    scale_color_manual(name = "Values", values = c("Sensitivity" = "darkblue", "Accuracy" = "red")) + 
+  xlim (1, 30)
+
+
+mod.knn <- knn3(y = dftrain$churn, x = dftrain[,-c(10)], k = 2)
+
+predicted.knn <- predict(mod.knn, dftest[,-c(10)], type = "class")
+
+confmat.knn <- confusionMatrix(data=predicted.knn, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.knn)
+
+roc_score.qda =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.knn, ordered=TRUE))
+plot(roc_score.qda ,main ="ROC curve")
+
+
+
+
+```
 
 ## QDA
 
@@ -333,7 +483,7 @@ s <- step(mod.log)
 
 mod.log <- glm(s$formula, data = dftrain, family = binomial(link = "probit"))
 
-predicted.log <- factor(ifelse(predict(mod.log, dftest[,-c(10)], type='response')>0.13,1,0))
+predicted.log <- factor(ifelse(predict(mod.log, dftest[,-c(10)], type='response')>0.5,1,0))
 
 confmat.log <- confusionMatrix(data=predicted.log, reference = dftest$churn, positive = '1')
 
@@ -342,6 +492,25 @@ CM_Function(confmat.log)
 roc_score.log =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.log, ordered=TRUE))
 plot(roc_score.log ,main ="ROC curve")
 
+```
+
+## Gaussian SVM
+
+```{r svm}
+library(e1071)
+mod.svm  = svm(formula = churn ~ .,
+               data = dftrain,
+                 type = 'C-classification', # this is because we want to make a regression classification
+                 kernel = 'radial')
+
+predicted.svm <- predict(mod.svm, dftest[,-c(10)])
+
+confmat.svm <- confusionMatrix(data=predicted.svm, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.svm)
+
+roc_score.svm =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.svm, ordered=TRUE))
+plot(roc_score.svm ,main ="ROC curve")
 ```
 
 ## Boosting 
@@ -401,34 +570,6 @@ plot(roc_score.log ,main ="ROC curve")
 # roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
 # plot(roc_score ,main ="ROC curve")
 ```
-
-## Bagging 
-
-```{r bagging}
-set.seed(123)
-library(ipred)
-
-# train bagged model
-ames_bag1 <- bagging(
-  formula = churn ~ .,
-  data = dftrain, 
-  nbagg = 100,  
-  coob = TRUE,
-  control = rpart.control(minsplit = 2, cp = 0)
-  )
-
-ames_bag1
-
-predicted <- factor(ifelse(predict(ames_bag1, dftest[,-c(10)], type = 'prob')[,2] >= 0.2, 'yes', 'no'))
-                    
-CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = 'yes'))
-
-roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
-plot(roc_score ,main ="ROC curve")
-
-```
-
-
 
 
 ##  Logistic Regression
@@ -587,14 +728,17 @@ CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
 library(e1071)
 
 classifierR = svm(formula = churn ~ .,
-                 data = df_UNDER,
+                 data = dftrain,
                  type = 'C-classification', # this is because we want to make a regression classification
-                 kernel = 'radial')
+                 kernel = 'radial', 
+                 cost = 100,
+                 gamma = 20)
 
-svm_1 <- predict(classifierR, df[,-c(10)])
 
-confusionMatrix(svm_1, df$churn, positive = 'yes')
+svm_1 <- predict(object = classifierR, newdata = dftest[,-c(10)])
 
-CM_Function(confusionMatrix(svm_1, df$churn, positive = 'yes'))
+confusionMatrix(svm_1, dftest$churn, positive = '1')
+
+CM_Function(confusionMatrix(svm_1, df$churn, positive = '1'))
 
 ```
