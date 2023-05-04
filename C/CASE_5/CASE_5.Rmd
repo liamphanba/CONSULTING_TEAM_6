@@ -16,6 +16,7 @@ rm(list = ls())
 
 ```{r packages}
 library(DT)
+library(pROC)
 library(summarytools)
 library(corrplot)
 library(dplyr)
@@ -196,24 +197,15 @@ df <- cbind(df,df2)
 ## Relationship between data in higher order
 
 ```{r higher order rel}
-theme_set(theme_minimal())
-
-ggpairs(
-  data = df,
-  columns = c(1:9, 11:25),
-  mapping = aes(col = churn, alpha = .9)
-) +
-  scale_fill_colorblind() +
-  scale_color_colorblind()
-```
-
-## Standardizing
-
-As some methods need scaled data we scale the data here to be centered. 
-
-```{r standardize}
-norm.value <- preProcess(df, method = c("center", "scale"))
-df <- predict(norm.value, df)
+# theme_set(theme_minimal())
+# 
+# ggpairs(
+#   data = df,
+#   columns = c(1:9, 11:25),
+#   mapping = aes(col = churn, alpha = .9)
+# ) +
+#   scale_fill_colorblind() +
+#   scale_color_colorblind()
 ```
 
 ## Sampling Methods
@@ -302,7 +294,55 @@ dftrain <- df[inds$train,]
 dftest <- df[inds$test,]
 ```
 
+## Standardizing
+
+As some methods need scaled data we scale the data here to be centered. 
+
+```{r standardize}
+norm.value <- preProcess(dftrain, method = c("center", "scale"))
+dftrain <- predict(norm.value, dftrain)
+dftest <- predict(norm.value, dftest)
+```
+
 # Predicting Models
+
+## QDA
+
+````{r qda}
+
+mod.qda <- qda(churn ~., data = dftrain)
+
+predicted.qda <- predict(mod.qda, dftest[,-c(10)])$class
+
+confmat.qda <- confusionMatrix(data=predicted.qda, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.qda)
+
+roc_score.qda =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.qda, ordered=TRUE))
+plot(roc_score.qda ,main ="ROC curve")
+
+```
+
+## QLOG
+
+````{r qda}
+
+mod.log <- glm(churn ~., data = dftrain, family = binomial(link = "probit"))
+
+s <- step(mod.log)
+
+mod.log <- glm(s$formula, data = dftrain, family = binomial(link = "probit"))
+
+predicted.log <- factor(ifelse(predict(mod.log, dftest[,-c(10)], type='response')>0.13,1,0))
+
+confmat.log <- confusionMatrix(data=predicted.log, reference = dftest$churn, positive = '1')
+
+CM_Function(confmat.log)
+
+roc_score.log =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.log, ordered=TRUE))
+plot(roc_score.log ,main ="ROC curve")
+
+```
 
 ## Boosting 
 
@@ -383,7 +423,6 @@ predicted <- factor(ifelse(predict(ames_bag1, dftest[,-c(10)], type = 'prob')[,2
                     
 CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = 'yes'))
 
-library(pROC)
 roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
 plot(roc_score ,main ="ROC curve")
 
