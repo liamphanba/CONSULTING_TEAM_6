@@ -311,21 +311,21 @@ dftest <- predict(norm.value, dftest)
 ## neural net
 
 ```{r}
-dftrain <- dftrain |> 
-  mutate_if(is.factor, as.character) |> 
-  mutate_if(is.character, as.numeric)
-
-library(neuralnet)
-mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
-
-predicted.neural <- predict(mod.neural, dftest[,-c(10)])
-
-confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
-
-CM_Function(confmat.neural)
-
-roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
-plot(roc_score.neural ,main ="ROC curve")
+# dftrain <- dftrain |> 
+#   mutate_if(is.factor, as.character) |> 
+#   mutate_if(is.character, as.numeric)
+# 
+# library(neuralnet)
+# mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
+# 
+# predicted.neural <- predict(mod.neural, dftest[,-c(10)])
+# 
+# confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
+# 
+# CM_Function(confmat.neural)
+# 
+# roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
+# plot(roc_score.neural ,main ="ROC curve")
 
 ```
 
