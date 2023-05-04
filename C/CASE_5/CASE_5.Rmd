@@ -30,6 +30,13 @@ library(devtools)
 library(ggplot2)
 library(ggthemes)
 library(GGally)
+library(caret)
+library(splitTools)
+library(rpart)
+library(xgboost)
+library(caTools)
+library(dplyr)
+library(caret)
 
 CM_Function <- function(cm) {
 
@@ -91,9 +98,9 @@ CM_Function <- function(cm) {
 ```{r data loading}
 
 df <- readxl::read_xls('Cchurn.xls')
-df$international_plan <- factor(df$international_plan, levels = c('no', 'yes'))
-df$voice_mail_plan <- factor(df$voice_mail_plan, levels = c('no', 'yes'))
-df$churn <- factor(df$churn, levels = c('no', 'yes'))
+df$international_plan <- factor(df$international_plan, levels = c('no', 'yes'), labels = c('0','1'))
+df$voice_mail_plan <- factor(df$voice_mail_plan, levels = c('no', 'yes'), labels = c('0','1'))
+df$churn <- factor(df$churn, levels = c('no', 'yes'), labels = c('0','1'))
 
 ```
 
@@ -181,7 +188,7 @@ table(df$churn)
 table(df_BOTH$churn)
 
 # ROSE
-df_ROSE <- ROSE(churn ~ ., data = df, seed = 1)$data
+df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 
 
 ```
@@ -190,25 +197,25 @@ df_ROSE <- ROSE(churn ~ ., data = df, seed = 1)$data
 
 ```{r}
 
-theme_set(theme_minimal())
-
-ggpairs(
-  data = df,
-  columns = c(1:9,11:14),
-  mapping = aes(col = churn, alpha = .9)
-) +
-  scale_fill_colorblind() +
-  scale_color_colorblind() +
-  labs(title = "Machine Learning Project")
-
-ggpairs(
-  data = df_ROSE,
-  columns = c(1:9,11:14),
-  mapping = aes(col = churn, alpha = .9)
-) +
-  scale_fill_colorblind() +
-  scale_color_colorblind() +
-  labs(title = "Machine Learning Project")
+# theme_set(theme_minimal())
+# 
+# ggpairs(
+#   data = df,
+#   columns = c(1:9,11:14),
+#   mapping = aes(col = churn, alpha = .9)
+# ) +
+#   scale_fill_colorblind() +
+#   scale_color_colorblind() +
+#   labs(title = "Machine Learning Project")
+# 
+# ggpairs(
+#   data = df_ROSE,
+#   columns = c(1:9,11:14),
+#   mapping = aes(col = churn, alpha = .9)
+# ) +
+#   scale_fill_colorblind() +
+#   scale_color_colorblind() +
+#   labs(title = "Machine Learning Project")
 
 
 ```
@@ -216,16 +223,118 @@ ggpairs(
 ## Scale
 
 ```{r standardize}
+norm.value <- preProcess(df, method = c("center", "scale"))
 
-df <- df %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-df_ROSE <- df_ROSE %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-df_OVER <- df_OVER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-df_UNDER <- df_UNDER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+df <- predict(norm.value, df)
+df_ROSE <- predict(norm.value, df_ROSE)
+df_BOTH <- predict(norm.value, df_BOTH)
+df_OVER <- predict(norm.value, df_OVER)
+df_UNDER <- predict(norm.value, df_UNDER)
+
+set.seed(1)
+data <- df_ROSE
+inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
+dftrain <- df[inds$train,]
+dftest <- df[inds$test,]
+
+
+# df <- df %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+# df_ROSE <- df_ROSE %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+# df_OVER <- df_OVER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
+# df_UNDER <- df_UNDER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
 
 ```
 
 
 # Predicting Models
+
+## Boosting 
+
+```{r}
+# library(gbm)
+# 
+# mod <-  gbm(churn ~.,
+#                 data = dftrain,
+#                 distribution = "gaussian",
+#                 cv.folds = 10,
+#                 shrinkage = .01,
+#                 n.minobsinnode = 10,
+#                 n.trees = 500)
+# 
+# predicted <- factor(ifelse(1/(1+exp(-2*predict.gbm(mod, dftest[,-c(10)])))>=0.5,1,0))
+# 
+# 
+# dftrain <-  dftrain |>
+#   mutate_if(is.factor, as.character) |>
+#   mutate_if(is.character, as.numeric)
+# 
+# dftest <-  dftest |>
+#   mutate_if(is.factor, as.character) |>
+#   mutate_if(is.character, as.numeric)
+# 
+# xgb_train <- xgb.DMatrix(data = as.matrix(dftrain[,-c(10)]), label = dftrain$churn)
+# xgb_test <- xgb.DMatrix(data = as.matrix(dftest[,-c(10)]), label = dftest$churn)
+# xgb_params <- list(
+#   booster = "gbtree",
+#   eta = 0.01,
+#   max_depth = 8,
+#   gamma = 4,
+#   subsample = 0.75,
+#   colsample_bytree = 1,
+#   objective = "multi:softprob",
+#   eval_metric = "mlogloss",
+#   num_class = 2)
+# 
+# xgb_model <- xgb.train(
+#   params = xgb_params,
+#   data = xgb_train,
+#   nrounds = 100,
+#   verbose = 1
+# )
+# 
+# xgb_model
+# 
+# xgb_preds <- predict(xgb_model, as.matrix(dftest$churn), reshape = TRUE)
+# xgb_preds <- as.data.frame(xgb_preds)
+# colnames(xgb_preds) <- c(0,1)
+# predicted <- ifelse(xgb_preds[,2] > 0.5, 1, 0)
+# 
+# CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = "1"))
+# 
+# library(pROC)
+# roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
+# plot(roc_score ,main ="ROC curve")
+```
+
+## Bagging 
+
+```{r bagging}
+set.seed(123)
+library(ipred)
+
+# train bagged model
+ames_bag1 <- bagging(
+  formula = churn ~ .,
+  data = dftrain, 
+  nbagg = 100,  
+  coob = TRUE,
+  control = rpart.control(minsplit = 2, cp = 0)
+  )
+
+ames_bag1
+
+predicted <- factor(ifelse(predict(ames_bag1, dftest[,-c(10)], type = 'prob')[,2] >= 0.2, 'yes', 'no'))
+                    
+CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = 'yes'))
+
+library(pROC)
+roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
+plot(roc_score ,main ="ROC curve")
+
+```
+
+
+
 
 ##  Logistic Regression
 
