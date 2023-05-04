@@ -274,15 +274,6 @@ dftrain <- data[inds$train,]
 dftest <- data[inds$test,]
 ```
 
-## 70% in Training and 30% in Testing
-
-```{r}
-
-
-
-
-```
-
 ## SCALING 
 
 As some methods need scaled data we scale the data here to be centered. 
@@ -534,9 +525,79 @@ CM_ENSEMBLES <- confusionMatrix(data=ENSEMBLES$MAJORITY_VOTE, reference = dftest
 
 CM_Function(CM_ENSEMBLES)
 
+roc_score.svm =roc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE))
+plot(roc_score.svm ,main ="ROC curve")
 
 ```
 
+# PRESENTATION ASSETS
+
+```{r}
+
+rm(list = ls())
+
+```
+
+```{r}
+
+# READ DATA
+df <- readxl::read_xls('Cchurn.xls')
+df$international_plan <- factor(df$international_plan, levels = c('no', 'yes'), labels = c('0','1'))
+df$voice_mail_plan <- factor(df$voice_mail_plan, levels = c('no', 'yes'), labels = c('0','1'))
+df$churn <- factor(df$churn, levels = c('no', 'yes'), labels = c('No','Yes'))
+
+# DATA ENGINEERING
+df$total_day_charge_per_minute <- ifelse(df$total_day_minutes == 0, 0, df$total_day_charge / df$total_day_minutes)
+df$total_eve_charge_per_minute <- ifelse(df$total_eve_minutes == 0, 0, df$total_eve_charge / df$total_eve_minutes)
+df$total_night_charge_per_minute <- ifelse(df$total_night_minutes == 0, 0, df$total_night_charge / df$total_night_minutes)
+df$total_intl_charge_per_minute <- ifelse(df$total_intl_minutes == 0, 0, df$total_intl_charge / df$total_intl_minutes)
+df <- subset(df, select = -c(total_day_charge, total_day_minutes, total_eve_charge, total_eve_minutes, total_night_charge, total_night_minutes, total_intl_charge, total_intl_minutes))
+
+colnames(df) <- c("Account Length", "International Plan","Voice Mail Plan","Voice Mail Messages","Total Days Calls","Total Evening Calls","Total Night Calls","Total Internation Calls","Total Customer Service Call","Customer Churn","Total Day Charge/Minute", "Total Evening Charge/Minute","Total Night Charge/Minute","Total International Charge/Minute")
+
+``` 
+
+## PAIRS PLOT
+
+```{r, fig.height=12,fig.width=12}
+
+# Load the necessary libraries
+library(ggplot2)
+library(GGally)
+library(ggthemes)
+
+# Set the main color palette
+colors <- c("#0D8387", "#870D27")
+
+# Create the ggpair plot 
+PAIRS1 <- ggpairs(df,columns = c(1:4), mapping = aes(col = `Customer Churn`, alpha = 0.9)) + scale_color_manual(values = colors) + scale_fill_manual(values = colors) + labs(title = "Customer Telecommunication Data", subtitle = "Customer Churn = Yes  is red", caption="From Variable 1 to 4") + theme(plot.title = element_text(face = "bold")) 
+
+PAIRS1
+
+PAIRS2 <- ggpairs(df,columns = c(5:9), mapping = aes(col = `Customer Churn`, alpha = 0.9)) + scale_color_manual(values = colors) + scale_fill_manual(values = colors) + labs(title = "Customer Telecommunication Data", subtitle = "Customer Churn = Yes  is red", caption="From Variable 5 to 9") + theme(plot.title = element_text(face = "bold"))
+
+PAIRS2
+
+PAIRS3 <- ggpairs(df,columns = c(10:10), mapping = aes(col = `Customer Churn`, alpha = 0.9)) + scale_color_manual(values = colors) + scale_fill_manual(values = colors) + labs(title = "Customer Telecommunication Data", subtitle = "", y="Count") + theme(plot.title = element_text(face = "bold")) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + annotate("text", x = 2, y = 900, label = "14.14%", colour = "#870D27", size=8) + annotate("text", x = 1, y = 4500, label = "85.86%", colour = "#0D8387", size=8) + theme(axis.text.x=element_text(size=16))
+
+PAIRS3
+
+PAIRS4 <- ggpairs(df,columns = c(11:14), mapping = aes(col = `Customer Churn`, alpha = 0.9)) + scale_color_manual(values = colors) + scale_fill_manual(values = colors) + labs(title = "Customer Telecommunication Data", subtitle = "Customer Churn = Yes  is red",caption="From Variable 11 to 14") + theme(plot.title = element_text(face = "bold"))
+
+PAIRS4
+
+df$`Customer Churn` <- factor(df$`Customer Churn`, levels = c('No', 'Yes'), labels = c(0,1))
+
+df$`Customer Churn` <- as.integer(df$`Customer Churn`)
+
+df$`Customer Churn` <- df$`Customer Churn` -1 
+
+Proportions_Churn <- sum(df$`Customer Churn`[df$`Customer Churn` == 1])/nrow(df)
+Proportions_No_Churn <- 1-Proportions_Churn
+
+```
+
+Proportions of Customer who churned => 14.14% Versus 85.86% who didn't churn. 
 
 
 
