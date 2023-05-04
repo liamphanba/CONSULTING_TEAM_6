@@ -37,6 +37,7 @@ library(xgboost)
 library(caTools)
 library(dplyr)
 library(caret)
+library(naniar)
 
 CM_Function <- function(cm) {
 
@@ -162,6 +163,53 @@ ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.le
 ```
 
 Now we have non-correlated data
+
+## Relationship between variables
+
+```{r pairs plot}
+theme_set(theme_minimal())
+
+ggpairs(
+  data = df,
+  columns = c(1:9,11:14),
+  mapping = aes(col = churn, alpha = .9)
+) +
+  scale_fill_colorblind() +
+  scale_color_colorblind()
+```
+
+We see that data is hard to seperate linearly between the classes. Therefore one can introduce new features of higher order or use methods which do not need the data to be seperable linearly. 
+
+## Adding features of higher order
+
+```{r adding features}
+# squared
+df2 <- df^2
+df2 <- df2[,-c(2,3,10)]
+colnames(df2) <- paste0(colnames(df2), '_sqd')
+
+# cubed
+df3 <- df^3
+df3 <- df3[,-c(2,3,10)]
+colnames(df3) <- paste0(colnames(df3), '_cbd')
+
+df <- cbind(df,df2,df3)
+```
+
+## Relationship between data in higher order
+
+```{r higher order rel}
+theme_set(theme_minimal())
+
+ggpairs(
+  data = df,
+  columns = c(2:3, 15:25),
+  mapping = aes(col = churn, alpha = .9)
+) +
+  scale_fill_colorblind() +
+  scale_color_colorblind()
+```
+
 
 ## Sampling Methods
 
