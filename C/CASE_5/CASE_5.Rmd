@@ -274,6 +274,15 @@ dftrain <- data[inds$train,]
 dftest <- data[inds$test,]
 ```
 
+## 70% in Training and 30% in Testing
+
+```{r}
+
+
+
+
+```
+
 ## SCALING 
 
 As some methods need scaled data we scale the data here to be centered. 
@@ -290,21 +299,21 @@ dftest <- predict(norm.value, dftest)
 
 ```{r}
 
-dftrain <- dftrain |> 
-  mutate_if(is.factor, as.character) |> 
-   mutate_if(is.character, as.numeric)
-
-library(neuralnet)
-mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
- 
-predicted.neural <- predict(mod.neural, dftest[,-c(10)])
-
-confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
- 
-CM_Function(confmat.neural)
- 
-roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
-plot(roc_score.neural ,main ="ROC curve")
+# dftrain <- dftrain |> 
+#   mutate_if(is.factor, as.character) |> 
+#    mutate_if(is.character, as.numeric)
+# 
+# library(neuralnet)
+# mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
+#  
+# predicted.neural <- predict(mod.neural, dftest[,-c(10)])
+# 
+# confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
+#  
+# CM_Function(confmat.neural)
+#  
+# roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
+# plot(roc_score.neural ,main ="ROC curve")
 
 ```
 
@@ -360,6 +369,7 @@ plot(roc_score.prunned_tree ,main ="ROC curve")
 ## BAGGING
 
 ```{r}
+
 set.seed(123)
 library(ipred)
 
@@ -508,36 +518,25 @@ PRED_QLOG <- predicted.log
 PRED_GAUSSIAN_SVM <- predicted.svm
 
 
+ENSEMBLES <- cbind(PRED_BOOSTING,PRED_PRUNED_TREE,PRED_BAGGING,PRED_KNN,PRED_QDA)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES <- ifelse(ENSEMBLES == 2, 1, 0)
+MAJORITY_VOTE <- rep(0,nrow(ENSEMBLES))
 
 
-ENSEMBLES <- data_frame()
+MAJORITY_VOTE <- ifelse(rowSums(ENSEMBLES) > (ncol(ENSEMBLES)-1)/2, 1, 0)
+
+ENSEMBLES <- cbind(ENSEMBLES,MAJORITY_VOTE)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES$MAJORITY_VOTE <- as.factor(ENSEMBLES$MAJORITY_VOTE)
+
+CM_ENSEMBLES <- confusionMatrix(data=ENSEMBLES$MAJORITY_VOTE, reference = dftest$churn, positive = '1')
+
+CM_Function(CM_ENSEMBLES)
 
 
 ```
 
-##  LOGISTIC REGRESSION
-
-```{r}
-
-#mod <- glm(churn ~., data = df_UNDER, family = binomial(link='logit'))
-#summary(mod)
-
-#churn_predicted <- factor(ifelse(predict(mod, df[,-c(10)], type = 'response') < 0.5, 'no', 'yes'))
-
-#library(caret)
-
-#LR_Confusion_Matrix_training <- confusionMatrix(data=churn_predicted, reference = df$churn, positive = 'yes')
-
-#CM_Function(LR_Confusion_Matrix_training)
-
-```
-
-Log regression doesn't work. Changing the decision boundary also doesn't help. --> maybe we actually need to resample
-
-https://www.r-bloggers.com/2021/05/class-imbalance-handling-imbalanced-data-in-r/
-https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
-https://datascientistdiary.com/index.php/2021/09/02/how-to-handle-imbalanced-data-example-in-r/
-https://cran.r-project.org/web/packages/imbalance/vignettes/imbalance.pdf
 
 
 
