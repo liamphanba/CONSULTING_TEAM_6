@@ -14,7 +14,7 @@ rm(list = ls())
 
 # Packages
 
-```{r packages}
+```{r}
 library(DT)
 library(adabag)
 library(rpart.plot)
@@ -99,7 +99,7 @@ CM_Function <- function(cm) {
 
 # Data and Feature Engineering
 
-```{r data loading}
+```{r}
 
 df <- readxl::read_xls('Cchurn.xls')
 df$international_plan <- factor(df$international_plan, levels = c('no', 'yes'), labels = c('0','1'))
@@ -110,7 +110,7 @@ df$churn <- factor(df$churn, levels = c('no', 'yes'), labels = c('0','1'))
 
 ## Summary
 
-```{r summary}
+```{r}
 print(summarytools::dfSummary(df), method = 'render')
 ```
 
@@ -143,7 +143,7 @@ Proves theory from before -> we can make one metric out of charge and minutes --
 
 ## Data Engineering
 
-```{r transform metrics}
+```{r}
 df$total_day_charge_per_minute <- ifelse(df$total_day_minutes == 0, 0, df$total_day_charge / df$total_day_minutes)
 df$total_eve_charge_per_minute <- ifelse(df$total_eve_minutes == 0, 0, df$total_eve_charge / df$total_eve_minutes)
 df$total_night_charge_per_minute <- ifelse(df$total_night_minutes == 0, 0, df$total_night_charge / df$total_night_minutes)
@@ -153,7 +153,7 @@ df <- subset(df, select = -c(total_day_charge, total_day_minutes, total_eve_char
 
 ## Correlation Plot
 
-```{r correlation 2}
+```{r}
 
 df_numeric <- select_if(df, is.numeric)  # Subset numeric columns with dplyr
 
@@ -169,7 +169,7 @@ Now we have non-correlated data
 
 ## Relationship between variables
 
-```{r pairs plot}
+```{r}
 # theme_set(theme_minimal())
 # 
 # ggpairs(
@@ -187,7 +187,7 @@ We see that data is hard to seperate linearly between the classes. Therefore one
 
 Only squaring as we have no negative data. Cubing would be needed with negative data. 
 
-```{r adding features}
+```{r}
 # squared
 df2 <- df^2
 df2 <- df2[,-c(2,3,10)]
@@ -198,7 +198,7 @@ df <- cbind(df,df2)
 
 ## Relationship between data in higher order
 
-```{r higher order rel}
+```{r}
 # theme_set(theme_minimal())
 # 
 # ggpairs(
@@ -288,7 +288,7 @@ df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 
 As we need to test the models we need to split the sampled data. 
 
-```{r train test split}
+```{r}
 set.seed(1)
 data <- df_OVER # choose which data to use df_ROSE / df_BOTH / df_UNDER / df_OVER / df
 inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
@@ -300,7 +300,7 @@ dftest <- data[inds$test,]
 
 As some methods need scaled data we scale the data here to be centered. 
 
-```{r standardize}
+```{r}
 norm.value <- preProcess(dftrain, method = c("center", "scale"))
 dftrain <- predict(norm.value, dftrain)
 dftest <- predict(norm.value, dftest)
@@ -331,7 +331,8 @@ dftest <- predict(norm.value, dftest)
 
 ## Boosting
 
-```{r bagging}
+```{r}
+
 set.seed(123)
 
 # train bagged model
@@ -347,6 +348,7 @@ roc_score.boost =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.boost,
 plot(roc_score.boost ,main ="ROC curve")
 
 ```
+
 ## Ctree
 
 ```{r}
@@ -378,7 +380,7 @@ plot(roc_score.prunned_tree ,main ="ROC curve")
 
 ## Bagging 
 
-```{r bagging}
+```{r}
 set.seed(123)
 library(ipred)
 
@@ -458,7 +460,7 @@ plot(roc_score.qda ,main ="ROC curve")
 
 ## QDA
 
-````{r qda}
+```{r}
 
 mod.qda <- qda(churn ~., data = dftrain)
 
@@ -475,7 +477,7 @@ plot(roc_score.qda ,main ="ROC curve")
 
 ## QLOG
 
-````{r qda}
+```{r qda}
 
 mod.log <- glm(churn ~., data = dftrain, family = binomial(link = "probit"))
 
@@ -496,7 +498,7 @@ plot(roc_score.log ,main ="ROC curve")
 
 ## Gaussian SVM
 
-```{r svm}
+```{r}
 library(e1071)
 mod.svm  = svm(formula = churn ~ .,
                data = dftrain,
@@ -516,6 +518,7 @@ plot(roc_score.svm ,main ="ROC curve")
 ## Boosting 
 
 ```{r}
+
 # library(gbm)
 # 
 # mod <-  gbm(churn ~.,
@@ -569,23 +572,24 @@ plot(roc_score.svm ,main ="ROC curve")
 # library(pROC)
 # roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
 # plot(roc_score ,main ="ROC curve")
+
 ```
 
 
 ##  Logistic Regression
 
-```{r predict}
+```{r}
 
-mod <- glm(churn ~., data = df_UNDER, family = binomial(link='logit'))
-summary(mod)
+#mod <- glm(churn ~., data = df_UNDER, family = binomial(link='logit'))
+#summary(mod)
 
-churn_predicted <- factor(ifelse(predict(mod, df[,-c(10)], type = 'response') < 0.5, 'no', 'yes'))
+#churn_predicted <- factor(ifelse(predict(mod, df[,-c(10)], type = 'response') < 0.5, 'no', 'yes'))
 
-library(caret)
+#library(caret)
 
-LR_Confusion_Matrix_training <- confusionMatrix(data=churn_predicted, reference = df$churn, positive = 'yes')
+#LR_Confusion_Matrix_training <- confusionMatrix(data=churn_predicted, reference = df$churn, positive = 'yes')
 
-CM_Function(LR_Confusion_Matrix_training)
+#CM_Function(LR_Confusion_Matrix_training)
 
 ```
 
@@ -599,15 +603,15 @@ https://cran.r-project.org/web/packages/imbalance/vignettes/imbalance.pdf
 
 ## LDA 
 
-```{r LDA}
+```{r}
 
 # LDA Model Fit on Training
-LDA_training <- lda(churn~., df_UNDER)
-LDA_training
+#LDA_training <- lda(churn~., df_UNDER)
+#LDA_training
 
 # Density Plot for Overlapping 
-p <- predict(LDA_training, df)
-ldahist(data = p$x[,1], g = df$churn, col = "#0D8387")
+#p <- predict(LDA_training, df)
+#ldahist(data = p$x[,1], g = df$churn, col = "#0D8387")
 
 ```
 
@@ -616,46 +620,13 @@ ldahist(data = p$x[,1], g = df$churn, col = "#0D8387")
 ```{r}
 
 # Training 60%
-LDA_predictions_training <- predict(LDA_training, df)$class
+#LDA_predictions_training <- predict(LDA_training, df)$class
 
-LDA_Confusion_Matrix_training <- confusionMatrix(data = LDA_predictions_training, reference = df$churn, positive='yes')
+#LDA_Confusion_Matrix_training <- confusionMatrix(data = LDA_predictions_training, reference = df$churn, positive='yes')
 
-CM_Function(LDA_Confusion_Matrix_training)
-
-```
-
-## Random Forest 
-
-Best with ROSE sampling
-
-```{r}
-library(randomForest)
-library(caret)
-set.seed(1)
-
-# Set up cross-validation
-control <- trainControl(method = "cv", number = 5, savePredictions = "final", classProbs = TRUE)
-
-# Train the Random Forest model using cross-validation
-model_cv <- train(churn ~ ., data = df_ROSE, method = "rf", trControl = control, ntree = 500, importance = TRUE)
-
-# Model performance (average metrics across folds)
-model_cv$results
-
-# Confusion Matrix and performance metrics (based on all the cross-validated predictions)
-confusionMatrix(model_cv$pred$pred, model_cv$pred$obs, positive = 'yes')
-CM_Function(confusionMatrix(model_cv$pred$pred, model_cv$pred$obs, positive = 'yes'))
-
-# Fit the Random Forest model with the optimal mtry value
-RF_optimal <- randomForest(churn ~ ., data = df_ROSE, mtry = 6, ntree = 500)
-
-# Mean Decrease Gini
-importance <- importance(RF_optimal)
-importance
-
+#CM_Function(LDA_Confusion_Matrix_training)
 
 ```
-
 
 ## Random Forest V2
 
@@ -663,21 +634,21 @@ importance
 
 # ROSE DATA
 
-rf <- randomForest(churn~., data=df_UNDER, proximity=TRUE)
+#rf <- randomForest(churn~., data=df_UNDER, proximity=TRUE)
 
-Predictions_OVER <- predict(rf, df_UNDER[,-10])
 
-CM_OVER <- confusionMatrix(Predictions_OVER, df_UNDER$churn, positive = 'yes')
+#Predictions_OVER <- predict(rf, df_UNDER[,-10])
+#CM_OVER <- confusionMatrix(Predictions_OVER, df_UNDER$churn, positive = 'yes')
 
-CM_Function(CM_OVER)
+#CM_Function(CM_OVER)
 
 # ORIGINAL DATA
 
-Predictions_DATA <- predict(rf, df[,-10])
+#Predictions_DATA <- predict(rf, df[,-10])
 
-CM_DATA <- confusionMatrix(Predictions_DATA, df$churn, positive = 'yes')
+#CM_DATA <- confusionMatrix(Predictions_DATA, df$churn, positive = 'yes')
 
-CM_Function(CM_DATA)
+#CM_Function(CM_DATA)
 
 ```
 
@@ -686,37 +657,37 @@ CM_Function(CM_DATA)
 
 ```{r}
 
-tree <- rpart(churn ~., data = df)
+#tree <- rpart(churn ~., data = df)
 
-rpart.plot(tree)
+#rpart.plot(tree)
 
-printcp(tree)
-plotcp(tree)
+#printcp(tree)
+#plotcp(tree)
 
-Predictions_DT <- predict(tree, df[,-10])[,2]
+#Predictions_DT <- predict(tree, df[,-10])[,2]
 
-Predictions_DT <- ifelse(Predictions_DT > 0.5, "yes","no")
+#Predictions_DT <- ifelse(Predictions_DT > 0.5, "yes","no")
 
-Predictions_DT <- as.factor(Predictions_DT)
+#Predictions_DT <- as.factor(Predictions_DT)
 
-CM_DATA <- confusionMatrix(Predictions_DT, df$churn, positive = 'yes')
+#CM_DATA <- confusionMatrix(Predictions_DT, df$churn, positive = 'yes')
 
-CM_Function(CM_DATA)
+#CM_Function(CM_DATA)
 
 ```
 
 ## Neural Net
 
-```{r neural}
+```{r}
 
-library(caret)
+#library(caret)
 
-nn1 <- train(churn ~ ., data = df_UNDER, method = "nnet")
+#nn1 <- train(churn ~ ., data = df_UNDER, method = "nnet")
 
-nn1.pre <- predict(nn1, df[,-c(10)])
+#nn1.pre <- predict(nn1, df[,-c(10)])
 
-confusionMatrix(nn1.pre, df$churn, positive = 'yes')
-CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
+#confusionMatrix(nn1.pre, df$churn, positive = 'yes')
+#CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
 
 ```
 
@@ -725,20 +696,20 @@ CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
 
 ```{r}
 
-library(e1071)
+#library(e1071)
 
-classifierR = svm(formula = churn ~ .,
-                 data = dftrain,
-                 type = 'C-classification', # this is because we want to make a regression classification
-                 kernel = 'radial', 
-                 cost = 100,
-                 gamma = 20)
+#classifierR = svm(formula = churn ~ .,
+                 #data = dftrain,
+                 #type = 'C-classification', # this is because we want to make a regression classification
+                 #kernel = 'radial', 
+                 #cost = 100,
+                 #gamma = 20)
 
 
-svm_1 <- predict(object = classifierR, newdata = dftest[,-c(10)])
+#svm_1 <- predict(object = classifierR, newdata = dftest[,-c(10)])
 
-confusionMatrix(svm_1, dftest$churn, positive = '1')
+#confusionMatrix(svm_1, dftest$churn, positive = '1')
 
-CM_Function(confusionMatrix(svm_1, df$churn, positive = '1'))
+#CM_Function(confusionMatrix(svm_1, df$churn, positive = '1'))
 
 ```
