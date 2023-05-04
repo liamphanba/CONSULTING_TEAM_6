@@ -28,7 +28,6 @@ library(ggcorrplot)
 library(klaR)
 library(psych)
 library(MASS)
-# library(ggord)
 library(devtools)
 library(ggplot2)
 library(ggthemes)
@@ -88,16 +87,10 @@ CM_Function <- function(cm) {
   text(70, 20, round(as.numeric(cm$overall[2]), 3), cex=1.4)
 }  
 
-#options(repos = c(
-    #fawda123 = 'https://fawda123.r-universe.dev',
-    #CRAN = 'https://cloud.r-project.org'))
-
-# Install ggord
-#install.packages('ggord')
 
 ```
 
-# Data and Feature Engineering
+# DATA AND QUICK FACTORING
 
 ```{r}
 
@@ -108,7 +101,7 @@ df$churn <- factor(df$churn, levels = c('no', 'yes'), labels = c('0','1'))
 
 ```
 
-## Summary
+## SUMMARY
 
 ```{r}
 print(summarytools::dfSummary(df), method = 'render')
@@ -125,7 +118,7 @@ print(summarytools::dfSummary(df), method = 'render')
   * Test normality of variables
 * Can variables be combined? We have day / eve / night / intl calls and for each of them minutes / calls / charge. Maybe we can combine this into one metric. Maybe average cost per minute or average cost per call? 
 
-## Correlation Plot
+## CORRELATION PLOT BEFORE DATA ENGINEERING
 
 ```{r correlation}
 
@@ -135,13 +128,13 @@ M <- cor(df_numeric)
 
 p.mat <- cor_pmat(df_numeric)
 
-ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.level=0.05, lab_size = 2, tl.cex = 10,outline.col = "white", ggtheme = ggplot2::theme_minimal(), colors = c("#823038", "white", "#2596be")) 
+ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.level=0.05, lab_size = 2, tl.cex = 10,outline.col = "white", ggtheme = ggplot2::theme_minimal(), colors = c("#2F4F4E", "white", "#0D8387")) 
 
 ```
 
 Proves theory from before -> we can make one metric out of charge and minutes --> charge / minutes
 
-## Data Engineering
+## DATA ENGINEERING
 
 ```{r}
 df$total_day_charge_per_minute <- ifelse(df$total_day_minutes == 0, 0, df$total_day_charge / df$total_day_minutes)
@@ -151,7 +144,7 @@ df$total_intl_charge_per_minute <- ifelse(df$total_intl_minutes == 0, 0, df$tota
 df <- subset(df, select = -c(total_day_charge, total_day_minutes, total_eve_charge, total_eve_minutes, total_night_charge, total_night_minutes, total_intl_charge, total_intl_minutes))
 ```
 
-## Correlation Plot
+## CORRELATION PLOT AFTER DATA ENGINEERING
 
 ```{r}
 
@@ -161,29 +154,13 @@ M <- cor(df_numeric)
 
 p.mat <- cor_pmat(df_numeric)
 
-ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.level=0.05, lab_size = 2, tl.cex = 10,outline.col = "white", ggtheme = ggplot2::theme_minimal(), colors = c("#823038", "white", "#2596be")) 
+ggcorrplot(M, hc.order = TRUE, type = "lower", lab = TRUE, p.mat = p.mat, sig.level=0.05, lab_size = 2, tl.cex = 10,outline.col = "white", ggtheme = ggplot2::theme_minimal(), colors = c("#2F4F4E", "white", "#0D8387")) 
 
 ```
 
 Now we have non-correlated data
 
-## Relationship between variables
-
-```{r}
-# theme_set(theme_minimal())
-# 
-# ggpairs(
-#   data = df,
-#   columns = c(1:9,11:14),
-#   mapping = aes(col = churn, alpha = .9)
-# ) +
-#   scale_fill_colorblind() +
-#   scale_color_colorblind()
-```
-
-We see that data is hard to seperate linearly between the classes. Therefore one can introduce new features of higher order or use methods which do not need the data to be seperable linearly. 
-
-## Adding features of higher order
+## HIGHER ORDER FEATURES
 
 Only squaring as we have no negative data. Cubing would be needed with negative data. 
 
@@ -194,6 +171,7 @@ df2 <- df2[,-c(2,3,10)]
 colnames(df2) <- paste0(colnames(df2), '_sqd')
 
 df <- cbind(df,df2)
+
 ```
 
 ## Relationship between data in higher order
@@ -210,7 +188,7 @@ df <- cbind(df,df2)
 #   scale_color_colorblind()
 ```
 
-## Sampling Methods
+## SAMPLING METHODS
 
 As we have unbalanced data we need to use a sampling method to balance the classes. Hereby there are four different methods. OVER / UNDER / BOTH / ROSE. 
 
@@ -241,7 +219,7 @@ df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 
 ```
 
-## Sampling Visualization
+## SAMPLING POST VISUALIZATION
 
 ```{r}
 
@@ -284,7 +262,7 @@ df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 #   labs(title = "Machine Learning Project")
 ```
 
-## Train / Test split
+## TRAIN AND TEST SPLIT
 
 As we need to test the models we need to split the sampled data. 
 
@@ -296,7 +274,7 @@ dftrain <- data[inds$train,]
 dftest <- data[inds$test,]
 ```
 
-## Standardizing
+## SCALING 
 
 As some methods need scaled data we scale the data here to be centered. 
 
@@ -306,30 +284,31 @@ dftrain <- predict(norm.value, dftrain)
 dftest <- predict(norm.value, dftest)
 ```
 
-# Predicting Models
+# PREDICTIVE MODELS
 
-## neural net
+## NEURAL NET
 
 ```{r}
-# dftrain <- dftrain |> 
-#   mutate_if(is.factor, as.character) |> 
-#   mutate_if(is.character, as.numeric)
-# 
-# library(neuralnet)
-# mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
-# 
-# predicted.neural <- predict(mod.neural, dftest[,-c(10)])
-# 
-# confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
-# 
-# CM_Function(confmat.neural)
-# 
-# roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
-# plot(roc_score.neural ,main ="ROC curve")
+
+dftrain <- dftrain |> 
+  mutate_if(is.factor, as.character) |> 
+   mutate_if(is.character, as.numeric)
+
+library(neuralnet)
+mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
+ 
+predicted.neural <- predict(mod.neural, dftest[,-c(10)])
+
+confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
+ 
+CM_Function(confmat.neural)
+ 
+roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
+plot(roc_score.neural ,main ="ROC curve")
 
 ```
 
-## Boosting
+## BOOSTING
 
 ```{r}
 
@@ -349,7 +328,7 @@ plot(roc_score.boost ,main ="ROC curve")
 
 ```
 
-## Ctree
+## CTREE
 
 ```{r}
 tree_full <- rpart(churn ~ ., 
@@ -378,7 +357,7 @@ roc_score.prunned_tree =roc(factor(dftest$churn, ordered=TRUE), factor(predicted
 plot(roc_score.prunned_tree ,main ="ROC curve")
 ```
 
-## Bagging 
+## BAGGING
 
 ```{r}
 set.seed(123)
@@ -405,7 +384,7 @@ plot(roc_score ,main ="ROC curve")
 ```
 
 
-## knn
+## KNN
 
 ```{r}
 
@@ -496,7 +475,7 @@ plot(roc_score.log ,main ="ROC curve")
 
 ```
 
-## Gaussian SVM
+## GAUSSIAN SVM
 
 ```{r}
 library(e1071)
@@ -515,68 +494,28 @@ roc_score.svm =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.svm, ord
 plot(roc_score.svm ,main ="ROC curve")
 ```
 
-## Boosting 
+
+# ENSEMBLES - MAJORITY VOTING
 
 ```{r}
 
-# library(gbm)
-# 
-# mod <-  gbm(churn ~.,
-#                 data = dftrain,
-#                 distribution = "gaussian",
-#                 cv.folds = 10,
-#                 shrinkage = .01,
-#                 n.minobsinnode = 10,
-#                 n.trees = 500)
-# 
-# predicted <- factor(ifelse(1/(1+exp(-2*predict.gbm(mod, dftest[,-c(10)])))>=0.5,1,0))
-# 
-# 
-# dftrain <-  dftrain |>
-#   mutate_if(is.factor, as.character) |>
-#   mutate_if(is.character, as.numeric)
-# 
-# dftest <-  dftest |>
-#   mutate_if(is.factor, as.character) |>
-#   mutate_if(is.character, as.numeric)
-# 
-# xgb_train <- xgb.DMatrix(data = as.matrix(dftrain[,-c(10)]), label = dftrain$churn)
-# xgb_test <- xgb.DMatrix(data = as.matrix(dftest[,-c(10)]), label = dftest$churn)
-# xgb_params <- list(
-#   booster = "gbtree",
-#   eta = 0.01,
-#   max_depth = 8,
-#   gamma = 4,
-#   subsample = 0.75,
-#   colsample_bytree = 1,
-#   objective = "multi:softprob",
-#   eval_metric = "mlogloss",
-#   num_class = 2)
-# 
-# xgb_model <- xgb.train(
-#   params = xgb_params,
-#   data = xgb_train,
-#   nrounds = 100,
-#   verbose = 1
-# )
-# 
-# xgb_model
-# 
-# xgb_preds <- predict(xgb_model, as.matrix(dftest$churn), reshape = TRUE)
-# xgb_preds <- as.data.frame(xgb_preds)
-# colnames(xgb_preds) <- c(0,1)
-# predicted <- ifelse(xgb_preds[,2] > 0.5, 1, 0)
-# 
-# CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = "1"))
-# 
-# library(pROC)
-# roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
-# plot(roc_score ,main ="ROC curve")
+PRED_BOOSTING <- predicted.boost
+PRED_PRUNED_TREE <- predicted.pruned_tree
+PRED_BAGGING <- predicted
+PRED_KNN <- predicted.knn
+PRED_QDA <- predicted.qda
+PRED_QLOG <- predicted.log
+PRED_GAUSSIAN_SVM <- predicted.svm
+
+
+
+
+ENSEMBLES <- data_frame()
+
 
 ```
 
-
-##  Logistic Regression
+##  LOGISTIC REGRESSION
 
 ```{r}
 
@@ -601,115 +540,4 @@ https://datascientistdiary.com/index.php/2021/09/02/how-to-handle-imbalanced-dat
 https://cran.r-project.org/web/packages/imbalance/vignettes/imbalance.pdf
 
 
-## LDA 
 
-```{r}
-
-# LDA Model Fit on Training
-#LDA_training <- lda(churn~., df_UNDER)
-#LDA_training
-
-# Density Plot for Overlapping 
-#p <- predict(LDA_training, df)
-#ldahist(data = p$x[,1], g = df$churn, col = "#0D8387")
-
-```
-
-### Confusion Matrix (Training VS Test)
-
-```{r}
-
-# Training 60%
-#LDA_predictions_training <- predict(LDA_training, df)$class
-
-#LDA_Confusion_Matrix_training <- confusionMatrix(data = LDA_predictions_training, reference = df$churn, positive='yes')
-
-#CM_Function(LDA_Confusion_Matrix_training)
-
-```
-
-## Random Forest V2
-
-```{r}
-
-# ROSE DATA
-
-#rf <- randomForest(churn~., data=df_UNDER, proximity=TRUE)
-
-
-#Predictions_OVER <- predict(rf, df_UNDER[,-10])
-#CM_OVER <- confusionMatrix(Predictions_OVER, df_UNDER$churn, positive = 'yes')
-
-#CM_Function(CM_OVER)
-
-# ORIGINAL DATA
-
-#Predictions_DATA <- predict(rf, df[,-10])
-
-#CM_DATA <- confusionMatrix(Predictions_DATA, df$churn, positive = 'yes')
-
-#CM_Function(CM_DATA)
-
-```
-
-
-## Decision Trees
-
-```{r}
-
-#tree <- rpart(churn ~., data = df)
-
-#rpart.plot(tree)
-
-#printcp(tree)
-#plotcp(tree)
-
-#Predictions_DT <- predict(tree, df[,-10])[,2]
-
-#Predictions_DT <- ifelse(Predictions_DT > 0.5, "yes","no")
-
-#Predictions_DT <- as.factor(Predictions_DT)
-
-#CM_DATA <- confusionMatrix(Predictions_DT, df$churn, positive = 'yes')
-
-#CM_Function(CM_DATA)
-
-```
-
-## Neural Net
-
-```{r}
-
-#library(caret)
-
-#nn1 <- train(churn ~ ., data = df_UNDER, method = "nnet")
-
-#nn1.pre <- predict(nn1, df[,-c(10)])
-
-#confusionMatrix(nn1.pre, df$churn, positive = 'yes')
-#CM_Function(confusionMatrix(nn1.pre, df$churn, positive = 'yes'))
-
-```
-
-
-## Support Vector Machines
-
-```{r}
-
-#library(e1071)
-
-#classifierR = svm(formula = churn ~ .,
-                 #data = dftrain,
-                 #type = 'C-classification', # this is because we want to make a regression classification
-                 #kernel = 'radial', 
-                 #cost = 100,
-                 #gamma = 20)
-
-
-#svm_1 <- predict(object = classifierR, newdata = dftest[,-c(10)])
-
-#confusionMatrix(svm_1, dftest$churn, positive = '1')
-
-#CM_Function(confusionMatrix(svm_1, df$churn, positive = '1'))
-
-```
