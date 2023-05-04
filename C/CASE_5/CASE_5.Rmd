@@ -167,20 +167,22 @@ Now we have non-correlated data
 ## Relationship between variables
 
 ```{r pairs plot}
-theme_set(theme_minimal())
-
-ggpairs(
-  data = df,
-  columns = c(1:9,11:14),
-  mapping = aes(col = churn, alpha = .9)
-) +
-  scale_fill_colorblind() +
-  scale_color_colorblind()
+# theme_set(theme_minimal())
+# 
+# ggpairs(
+#   data = df,
+#   columns = c(1:9,11:14),
+#   mapping = aes(col = churn, alpha = .9)
+# ) +
+#   scale_fill_colorblind() +
+#   scale_color_colorblind()
 ```
 
 We see that data is hard to seperate linearly between the classes. Therefore one can introduce new features of higher order or use methods which do not need the data to be seperable linearly. 
 
 ## Adding features of higher order
+
+Only squaring as we have no negative data. Cubing would be needed with negative data. 
 
 ```{r adding features}
 # squared
@@ -188,12 +190,7 @@ df2 <- df^2
 df2 <- df2[,-c(2,3,10)]
 colnames(df2) <- paste0(colnames(df2), '_sqd')
 
-# cubed
-df3 <- df^3
-df3 <- df3[,-c(2,3,10)]
-colnames(df3) <- paste0(colnames(df3), '_cbd')
-
-df <- cbind(df,df2,df3)
+df <- cbind(df,df2)
 ```
 
 ## Relationship between data in higher order
@@ -203,15 +200,25 @@ theme_set(theme_minimal())
 
 ggpairs(
   data = df,
-  columns = c(2:3, 15:25),
+  columns = c(1:9, 11:25),
   mapping = aes(col = churn, alpha = .9)
 ) +
   scale_fill_colorblind() +
   scale_color_colorblind()
 ```
 
+## Standardizing
+
+As some methods need scaled data we scale the data here to be centered. 
+
+```{r standardize}
+norm.value <- preProcess(df, method = c("center", "scale"))
+df <- predict(norm.value, df)
+```
 
 ## Sampling Methods
+
+As we have
 
 ```{r}
 
@@ -241,6 +248,16 @@ df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 
 ```
 
+## Train / Test split
+
+```{r train test split}
+set.seed(1)
+data <- df_ROSE
+inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
+dftrain <- df[inds$train,]
+dftest <- df[inds$test,]
+```
+
 ## Sampling Visualization
 
 ```{r}
@@ -267,32 +284,6 @@ df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 
 
 ```
-
-## Scale
-
-```{r standardize}
-norm.value <- preProcess(df, method = c("center", "scale"))
-
-df <- predict(norm.value, df)
-df_ROSE <- predict(norm.value, df_ROSE)
-df_BOTH <- predict(norm.value, df_BOTH)
-df_OVER <- predict(norm.value, df_OVER)
-df_UNDER <- predict(norm.value, df_UNDER)
-
-set.seed(1)
-data <- df_ROSE
-inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
-dftrain <- df[inds$train,]
-dftest <- df[inds$test,]
-
-
-# df <- df %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-# df_ROSE <- df_ROSE %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-# df_OVER <- df_OVER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-# df_UNDER <- df_UNDER %>% mutate_if(~!is.factor(.), ~(scale(.) %>% as.vector))
-
-```
-
 
 # Predicting Models
 
