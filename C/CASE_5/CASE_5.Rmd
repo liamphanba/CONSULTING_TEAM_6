@@ -218,7 +218,7 @@ df <- predict(norm.value, df)
 
 ## Sampling Methods
 
-As we have
+As we have unbalanced data we need to use a sampling method to balance the classes. Hereby there are four different methods. OVER / UNDER / BOTH / ROSE. 
 
 ```{r}
 
@@ -245,17 +245,6 @@ table(df_BOTH$churn)
 # ROSE
 df_ROSE <- ROSE(churn ~ ., data = df, seed = 1, p = 0.5)$data
 
-
-```
-
-## Train / Test split
-
-```{r train test split}
-set.seed(1)
-data <- df_ROSE
-inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
-dftrain <- df[inds$train,]
-dftest <- df[inds$test,]
 ```
 
 ## Sampling Visualization
@@ -265,8 +254,8 @@ dftest <- df[inds$test,]
 # theme_set(theme_minimal())
 # 
 # ggpairs(
-#   data = df,
-#   columns = c(1:9,11:14),
+#   data = df_ROSE,
+#   columns = c(1:9, 11:25),
 #   mapping = aes(col = churn, alpha = .9)
 # ) +
 #   scale_fill_colorblind() +
@@ -274,15 +263,43 @@ dftest <- df[inds$test,]
 #   labs(title = "Machine Learning Project")
 # 
 # ggpairs(
-#   data = df_ROSE,
-#   columns = c(1:9,11:14),
+#   data = df_OVER,
+#   columns = c(1:9, 11:25),
 #   mapping = aes(col = churn, alpha = .9)
 # ) +
 #   scale_fill_colorblind() +
 #   scale_color_colorblind() +
 #   labs(title = "Machine Learning Project")
 
+# ggpairs(
+#   data = df_UNDER,
+#   columns = c(1:9, 11:25),
+#   mapping = aes(col = churn, alpha = .9)
+# ) +
+#   scale_fill_colorblind() +
+#   scale_color_colorblind() +
+#   labs(title = "Machine Learning Project")
 
+# ggpairs(
+#   data = df_BOTH,
+#   columns = c(1:9, 11:25),
+#   mapping = aes(col = churn, alpha = .9)
+# ) +
+#   scale_fill_colorblind() +
+#   scale_color_colorblind() +
+#   labs(title = "Machine Learning Project")
+```
+
+## Train / Test split
+
+As we need to test the models we need to split the sampled data. 
+
+```{r train test split}
+set.seed(1)
+data <- df_OVER # choose which data to use df_ROSE / df_BOTH / df_UNDER / df_OVER / df
+inds <- splitTools::partition(data$churn, p = c(train = 0.7, test = 0.3))
+dftrain <- df[inds$train,]
+dftest <- df[inds$test,]
 ```
 
 # Predicting Models
