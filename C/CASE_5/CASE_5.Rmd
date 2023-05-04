@@ -363,6 +363,7 @@ plot(roc_score.prunned_tree ,main ="ROC curve")
 
 set.seed(123)
 library(ipred)
+library(pROC)
 
 # train bagged model
 ames_bag1 <- bagging(
@@ -380,7 +381,11 @@ predicted <- factor(ifelse(predict(ames_bag1, dftest[,-c(10)], type = 'prob')[,2
 CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = '1'))
 
 roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
-plot(roc_score ,main ="ROC curve")
+
+auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)),4)
+
+ggroc(roc_score, colour = '#0D8387', size = 1) +
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
 
 ```
 
@@ -525,8 +530,13 @@ CM_ENSEMBLES <- confusionMatrix(data=ENSEMBLES$MAJORITY_VOTE, reference = dftest
 
 CM_Function(CM_ENSEMBLES)
 
-roc_score.svm =roc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE))
-plot(roc_score.svm ,main ="ROC curve")
+roc_score =roc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE))
+
+auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
+
+ggroc(roc_score, colour = '#0D8387', size = 1) +
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+
 
 ```
 
