@@ -351,6 +351,7 @@ cp_bp <- tree_full$cptable[min_xerr,"CP"]  # find the corresponding CP value, to
 
 
 mod.pruned_tree<- prune(tree_full, cp = cp_bp) # re-compute the tree with the selected Cp
+
 rpart.plot(mod.pruned_tree, yesno = TRUE, digits =-3)
 
 predicted.pruned_tree <- predict(mod.pruned_tree, dftest[,-c(10)], type = "class")
@@ -363,6 +364,27 @@ CM_Function(confmat.prunned_tree)
 
 roc_score.prunned_tree =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.pruned_tree, ordered=TRUE))
 plot(roc_score.prunned_tree ,main ="ROC curve")
+
+```
+
+```{r}
+
+library(rattle)
+
+rpart.plot(mod.pruned_tree, yesno = TRUE, digits =-3)
+
+
+# Customizing the output
+pdf("CTREE.pdf",        
+    width = 30, height = 30, 
+    bg = "white",          
+    colormodel = "rgb")          
+
+# Creating a plot
+fancyRpartPlot(mod.pruned_tree,yesno=TRUE,main="Pruned Tree",tweak=3)
+
+# Closing the graphical device
+dev.off() 
 
 ```
 
