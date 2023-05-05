@@ -40,6 +40,7 @@ library(caTools)
 library(dplyr)
 library(caret)
 library(naniar)
+library(kableExtra)
 
 CM_Function <- function(cm) {
 
@@ -165,6 +166,7 @@ Now we have non-correlated data
 Only squaring as we have no negative data. Cubing would be needed with negative data. 
 
 ```{r}
+
 # squared
 df2 <- df^2
 df2 <- df2[,-c(2,3,10)]
@@ -282,31 +284,12 @@ As some methods need scaled data we scale the data here to be centered.
 norm.value <- preProcess(dftrain, method = c("center", "scale"))
 dftrain <- predict(norm.value, dftrain)
 dftest <- predict(norm.value, dftest)
+
+df_original_test <- predict(norm.value, df)
+
 ```
 
 # PREDICTIVE MODELS
-
-## NEURAL NET
-
-```{r}
-
-# dftrain <- dftrain |> 
-#   mutate_if(is.factor, as.character) |> 
-#    mutate_if(is.character, as.numeric)
-# 
-# library(neuralnet)
-# mod.neural <- neuralnet(churn ~ ., data = dftrain, hidden=c(15,15), linear.output = FALSE)
-#  
-# predicted.neural <- predict(mod.neural, dftest[,-c(10)])
-# 
-# confmat.neural <- confusionMatrix(data=predicted.neural, reference = dftest$churn, positive = '1')
-#  
-# CM_Function(confmat.neural)
-#  
-# roc_score.neural =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.neural, ordered=TRUE))
-# plot(roc_score.neural ,main ="ROC curve")
-
-```
 
 ## BOOSTING
 
@@ -319,6 +302,8 @@ mod.boost <- boosting(churn ~., data=dftrain)
 
 predicted.boost <- factor(predict(mod.boost, dftest, type="class")$class)
 
+PRED_BOOSTING <- predicted.boost
+
 confmat.boost <- confusionMatrix(data=predicted.boost, reference = dftest$churn, positive = '1')
 
 CM_Function(confmat.boost)
@@ -328,9 +313,30 @@ plot(roc_score.boost ,main ="ROC curve")
 
 ```
 
+## BOOSTING ON ORIGINAL DATA
+
+```{r}
+
+predicted.boost <- factor(predict(mod.boost, df_original_test, type="class")$class)
+
+PRED_BOOSTING_ORIGINAL <- predicted.boost
+
+confmat.boost <- confusionMatrix(data=predicted.boost, reference = df_original_test$churn, positive = '1')
+
+CM_Function(confmat.boost)
+
+roc_score.boost =roc(factor(df_original_test$churn, ordered=TRUE), factor(predicted.boost, ordered=TRUE))
+plot(roc_score.boost ,main ="ROC curve")
+
+
+```
+
 ## CTREE
 
 ```{r}
+
+set.seed(123)
+
 tree_full <- rpart(churn ~ ., 
               data = dftrain, 
               method = "class",  # "class" because Y is a binary factor
@@ -349,12 +355,44 @@ rpart.plot(mod.pruned_tree, yesno = TRUE, digits =-3)
 
 predicted.pruned_tree <- predict(mod.pruned_tree, dftest[,-c(10)], type = "class")
 
+PRED_CTREE <- predicted.pruned_tree
+
 confmat.prunned_tree <- confusionMatrix(data=predicted.pruned_tree, reference = dftest$churn, positive = '1')
 
 CM_Function(confmat.prunned_tree)
 
 roc_score.prunned_tree =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.pruned_tree, ordered=TRUE))
 plot(roc_score.prunned_tree ,main ="ROC curve")
+
+```
+
+## CTREE ON ORIGINAL DATA
+
+```{r}
+
+predicted.pruned_tree <- predict(mod.pruned_tree, df_original_test[,-c(10)], type = "class")
+
+PRED_CTREE_ORIGINAL <- predicted.pruned_tree
+
+confmat.prunned_tree <- confusionMatrix(data=predicted.pruned_tree, reference = df_original_test$churn, positive = '1')
+
+CM_Function(confmat.prunned_tree)
+
+roc_score.prunned_tree =roc(factor(df_original_test$churn, ordered=TRUE), factor(predicted.pruned_tree, ordered=TRUE))
+plot(roc_score.prunned_tree ,main ="ROC curve")
+
+
+```
+
+## VARIABLES IMPORTANCES
+
+```{r}
+
+relevance<-as.data.frame(mod.pruned_tree$variable.importance) #we get the ranking of the variables by importance
+kable(relevance, row.names = T,col.names="Variable Importance") %>% kable_paper("hover", full_width = T) #built table
+
+relevance
+
 ```
 
 ## BAGGING
@@ -377,6 +415,8 @@ ames_bag1 <- bagging(
 ames_bag1
 
 predicted <- factor(ifelse(predict(ames_bag1, dftest[,-c(10)], type = 'prob')[,2] >= 0.5, 1, 0))
+
+PRED_BAGGING <- predicted
                     
 CM_Function(confusionMatrix(data=predicted, reference = dftest$churn, positive = '1'))
 
@@ -386,6 +426,27 @@ auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=T
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
  ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+
+```
+
+
+## BAGGING ON ORIGINAL DATA
+
+```{r}
+
+predicted <- factor(ifelse(predict(ames_bag1, df_original_test[,-c(10)], type = 'prob')[,2] >= 0.5, 1, 0))
+
+PRED_BAGGING_ORIGINAL <- predicted
+                    
+CM_Function(confusionMatrix(data=predicted, reference = df_original_test$churn, positive = '1'))
+
+roc_score=roc(factor(df_original_test$churn, ordered=TRUE), factor(predicted, ordered=TRUE)) #AUC score
+
+auc <- round(auc(factor(df_original_test$churn, ordered=TRUE), factor(predicted, ordered=TRUE)),4)
+
+ggroc(roc_score, colour = '#0D8387', size = 1) +
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+
 
 ```
 
@@ -431,6 +492,8 @@ mod.knn <- knn3(y = dftrain$churn, x = dftrain[,-c(10)], k = 2)
 
 predicted.knn <- predict(mod.knn, dftest[,-c(10)], type = "class")
 
+PRED_KNN <- predicted.knn
+
 confmat.knn <- confusionMatrix(data=predicted.knn, reference = dftest$churn, positive = '1')
 
 CM_Function(confmat.knn)
@@ -439,6 +502,22 @@ roc_score.qda =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.knn, ord
 plot(roc_score.qda ,main ="ROC curve")
 
 
+```
+
+## KNN ON ORIGINAL DATA
+
+```{r}
+
+predicted.knn <- predict(mod.knn, df_original_test[,-c(10)], type = "class")
+
+PRED_KNN_ORIGINAL <- predicted.knn
+
+confmat.knn <- confusionMatrix(data=predicted.knn, reference = df_original_test$churn, positive = '1')
+
+CM_Function(confmat.knn)
+
+roc_score.qda =roc(factor(df_original_test$churn, ordered=TRUE), factor(predicted.knn, ordered=TRUE))
+plot(roc_score.qda ,main ="ROC curve")
 
 
 ```
@@ -457,6 +536,22 @@ CM_Function(confmat.qda)
 
 roc_score.qda =roc(factor(dftest$churn, ordered=TRUE), factor(predicted.qda, ordered=TRUE))
 plot(roc_score.qda ,main ="ROC curve")
+
+```
+
+## QDA ON ORIGINAL DATA 
+
+```{r}
+
+predicted.qda <- predict(mod.qda, df_original_test[,-c(10)])$class
+
+confmat.qda <- confusionMatrix(data=predicted.qda, reference = df_original_test$churn, positive = '1')
+
+CM_Function(confmat.qda)
+
+roc_score.qda =roc(factor(df_original_test$churn, ordered=TRUE), factor(predicted.qda, ordered=TRUE))
+plot(roc_score.qda ,main ="ROC curve")
+
 
 ```
 
@@ -503,18 +598,12 @@ plot(roc_score.svm ,main ="ROC curve")
 
 # ENSEMBLES - MAJORITY VOTING
 
+**BOOSTING** **CTREE** **BAGGING**
+
 ```{r}
 
-PRED_BOOSTING <- predicted.boost
-PRED_PRUNED_TREE <- predicted.pruned_tree
-PRED_BAGGING <- predicted
-PRED_KNN <- predicted.knn
-PRED_QDA <- predicted.qda
-PRED_QLOG <- predicted.log
-PRED_GAUSSIAN_SVM <- predicted.svm
 
-
-ENSEMBLES <- cbind(PRED_BOOSTING,PRED_PRUNED_TREE,PRED_BAGGING,PRED_KNN,PRED_QDA)
+ENSEMBLES <- cbind(PRED_BOOSTING,PRED_CTREE,PRED_BAGGING)
 ENSEMBLES <- as.data.frame(ENSEMBLES)
 ENSEMBLES <- ifelse(ENSEMBLES == 2, 1, 0)
 MAJORITY_VOTE <- rep(0,nrow(ENSEMBLES))
@@ -539,6 +628,107 @@ ggroc(roc_score, colour = '#0D8387', size = 1) +
 
 
 ```
+
+## ENSEMBLES - MAJORITY VOTING ON ORIGINAL
+
+**BOOSTING** **CTREE** **BAGGING**
+
+```{r}
+
+
+ENSEMBLES <- cbind(PRED_BOOSTING_ORIGINAL,PRED_CTREE_ORIGINAL,PRED_BAGGING_ORIGINAL)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES <- ifelse(ENSEMBLES == 2, 1, 0)
+MAJORITY_VOTE <- rep(0,nrow(ENSEMBLES))
+
+
+MAJORITY_VOTE <- ifelse(rowSums(ENSEMBLES) > (ncol(ENSEMBLES)-1)/2, 1, 0)
+
+ENSEMBLES <- cbind(ENSEMBLES,MAJORITY_VOTE)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES$MAJORITY_VOTE <- as.factor(ENSEMBLES$MAJORITY_VOTE)
+
+CM_ENSEMBLES <- confusionMatrix(data=ENSEMBLES$MAJORITY_VOTE, reference = df_original_test$churn, positive = '1')
+
+CM_Function(CM_ENSEMBLES)
+
+roc_score =roc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE))
+
+auc <- round(auc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
+
+ggroc(roc_score, colour = '#0D8387', size = 1) +
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+
+
+```
+
+# ENSEMBLES - MAJORITY VOTING
+
+**KNN** **CTREE** **BAGGING**
+
+```{r}
+
+
+ENSEMBLES <- cbind(PRED_KNN,PRED_CTREE,PRED_BAGGING)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES <- ifelse(ENSEMBLES == 2, 1, 0)
+MAJORITY_VOTE <- rep(0,nrow(ENSEMBLES))
+
+
+MAJORITY_VOTE <- ifelse(rowSums(ENSEMBLES) > (ncol(ENSEMBLES)-1)/2, 1, 0)
+
+ENSEMBLES <- cbind(ENSEMBLES,MAJORITY_VOTE)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES$MAJORITY_VOTE <- as.factor(ENSEMBLES$MAJORITY_VOTE)
+
+CM_ENSEMBLES <- confusionMatrix(data=ENSEMBLES$MAJORITY_VOTE, reference = dftest$churn, positive = '1')
+
+CM_Function(CM_ENSEMBLES)
+
+roc_score =roc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE))
+
+auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
+
+ggroc(roc_score, colour = '#0D8387', size = 1) +
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+
+
+```
+
+## ENSEMBLES - MAJORITY VOTING ON ORIGINAL
+
+**KNN** **CTREE** **BAGGING**
+
+```{r}
+
+
+ENSEMBLES <- cbind(PRED_KNN_ORIGINAL,PRED_CTREE_ORIGINAL,PRED_BAGGING_ORIGINAL)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES <- ifelse(ENSEMBLES == 2, 1, 0)
+MAJORITY_VOTE <- rep(0,nrow(ENSEMBLES))
+
+
+MAJORITY_VOTE <- ifelse(rowSums(ENSEMBLES) > (ncol(ENSEMBLES)-1)/2, 1, 0)
+
+ENSEMBLES <- cbind(ENSEMBLES,MAJORITY_VOTE)
+ENSEMBLES <- as.data.frame(ENSEMBLES)
+ENSEMBLES$MAJORITY_VOTE <- as.factor(ENSEMBLES$MAJORITY_VOTE)
+
+CM_ENSEMBLES <- confusionMatrix(data=ENSEMBLES$MAJORITY_VOTE, reference = df_original_test$churn, positive = '1')
+
+CM_Function(CM_ENSEMBLES)
+
+roc_score =roc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE))
+
+auc <- round(auc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
+
+ggroc(roc_score, colour = '#0D8387', size = 1) +
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+
+
+```
+
+
 
 # PRESENTATION ASSETS
 
