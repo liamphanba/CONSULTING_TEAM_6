@@ -456,6 +456,8 @@ ggroc(roc_score, colour = '#0D8387', size = 1) +
 
 ```{r}
 
+set.seed(123)
+
 predicted <- factor(ifelse(predict(ames_bag1, df_original_test[,-c(10)], type = 'prob')[,2] >= 0.5, 1, 0))
 
 PRED_BAGGING_ORIGINAL <- predicted
