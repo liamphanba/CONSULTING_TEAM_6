@@ -447,7 +447,7 @@ roc_score=roc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE
 auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(predicted, ordered=TRUE)),4)
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
- ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="1-Specificity", y="Sensitivity")
 
 ```
 
@@ -467,7 +467,7 @@ roc_score=roc(factor(df_original_test$churn, ordered=TRUE), factor(predicted, or
 auc <- round(auc(factor(df_original_test$churn, ordered=TRUE), factor(predicted, ordered=TRUE)),4)
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
- ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="1-Specificity", y="Sensitivity")
 
 
 ```
@@ -646,7 +646,7 @@ roc_score =roc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOT
 auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
- ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="1-Specificity", y="Sensitivity")
 
 
 ```
@@ -679,7 +679,7 @@ roc_score =roc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MA
 auc <- round(auc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
- ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="1-Specificity", y="Sensitivity")
 
 
 ```
@@ -712,7 +712,7 @@ roc_score =roc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOT
 auc <- round(auc(factor(dftest$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
- ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="1-Specificity", y="Sensitivity")
 
 
 ```
@@ -745,7 +745,7 @@ roc_score =roc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MA
 auc <- round(auc(factor(df_original_test$churn, ordered=TRUE), factor(ENSEMBLES$MAJORITY_VOTE, ordered=TRUE)),4)
 
 ggroc(roc_score, colour = '#0D8387', size = 1) +
- ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="Specificity", y="Sensitivity")
+ ggtitle(paste0('ROC Curve ', '(AUC = ', auc, ')')) + theme_minimal() + theme(plot.title = element_text(face = "bold")) + labs(x="1-Specificity", y="Sensitivity")
 
 
 ```
