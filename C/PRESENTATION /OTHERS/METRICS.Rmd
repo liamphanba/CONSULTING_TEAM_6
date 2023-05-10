@@ -1,0 +1,28 @@
+
+$$
+\text{Accuracy} = \frac{TP+TN}{TP+TN+FP+FN}
+$$
+
+$$
+\text{Precision} = \frac{TP}{TP+FP}
+$$
+
+
+$$
+\text{Recall} = \frac{TP}{TP+FN}
+$$
+
+$$
+\text{Specificity} = \frac{TN}{TN+FP}
+$$
+
+
+$$
+\text{F1 score} = 2\cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}} = \frac{2TP}{2TP+FP+FN}
+$$
+
+
+$$
+\text{Cohen's kappa} = \frac{\text{Observed agreement} - \text{Expected agreement}}{1 - \text{Expected agreement}}
+$$
+
